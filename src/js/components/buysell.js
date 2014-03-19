@@ -188,11 +188,12 @@ function BuySellWizardViewModel() {
     //Get a list of all of my available addresses with the specified sell asset balance
     var addresses = WALLET.getAddressesList(true);
     var addressesWithBalance = [];
-    var bal = null, address = null;
+    var bal = null, address = null, addressObj = null;
     for(var i = 0; i < addresses.length; i++) {
-      address = WALLET.getAddressObj(addresses[i][0]);
-      bal = WALLET.getBalance(addresses[i][0], self.sellAsset());
-      if(address.IS_WATCH_ONLY) continue; //don't list watch addresses, obviously
+      address = addresses[i][0];
+      addressObj = WALLET.getAddressObj(address);
+      bal = WALLET.getBalance(address, self.sellAsset());
+      if(addressObj.IS_WATCH_ONLY) continue; //don't list watch addresses, obviously
       if(bal) {
         addressesWithBalance.push(new AddressInDropdownItemModel(addresses[i][0], addresses[i][1], self.sellAsset(), bal));        
       } 
@@ -430,7 +431,12 @@ function BuySellWizardViewModel() {
     
     self.buyAsset.subscribe(function(newValue) {
       self.selectedAddress(''); //clear it
+      //setTimeout(function() { self.selectedAddress(''); }, 20); //clear it
       if(!newValue) return;
+      if(newValue == 'XCP' || newValue == 'BTC') {
+        self.buyAssetIsDivisible(true);
+        return;
+      }
       failoverAPI("get_asset_info", [[newValue]], function(assetsInfo, endpoint) {
         self.buyAssetIsDivisible(assetsInfo[0]['divisible']);
       });    
