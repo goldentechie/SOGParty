@@ -1,3 +1,7 @@
+function assert(condition, message) {
+  if (!condition)
+      throw message || "Assertion failed";
+}
 
 function numberWithCommas(x) {
   if(x === undefined || x === null) return x;
