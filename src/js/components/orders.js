@@ -56,7 +56,7 @@ function OrdersViewModel() {
       message: "This field is required.",
       onlyIf: function () { return self.asset1() == 'BTC' || self.asset2() == 'BTC'; }
     },
-    isValidPositiveQuantityOrZero: self,
+    isValidPositiveQuantity: self,
     max: 100
   });
   self.maxBTCFeeRequiredPct = ko.observable(ORDER_DEFAULT_BTCFEE_PCT).extend({
@@ -64,7 +64,7 @@ function OrdersViewModel() {
       message: "This field is required.",
       onlyIf: function () { return self.asset1() == 'BTC' || self.asset2() == 'BTC'; }
     },
-    isValidPositiveQuantityOrZero: self,
+    isValidPositiveQuantity: self,
     max: 100
   });
 
@@ -220,8 +220,9 @@ function OrdersViewModel() {
     failoverAPI("get_order_book_simple", args, function(data, endpoint) {
       deferred.resolve();
       //set up order book display
-      self.askBook(data['base_ask_book'].slice(0,10)); //limit to 10 entries
-      self.bidBook(data['base_bid_book'].slice(0,10));
+      data['base_ask_book'].reverse(); //for display
+      self.askBook(data['base_ask_book'].slice(0,7)); //limit to 7 entries
+      self.bidBook(data['base_bid_book'].slice(0,7));
       self.bidAskMedian(data['bid_ask_median']);
       self.bidDepth(data['bid_depth']);
       self.askDepth(data['ask_depth']);
@@ -276,11 +277,11 @@ function OrdersViewModel() {
     
     if(asset1 == self.baseAsset()) {
       if(!derivedQuantity1) return; //in process of changing assets
-      return smartFormat(Decimal.round(new Decimal(derivedQuantity2).div(derivedQuantity1), 8, Decimal.MidpointRounding.ToEven).toFloat());
+      return smartFormat(Decimal.round(new Decimal(derivedQuantity2).div(derivedQuantity1), 8).toFloat());
     } else {
       assert(asset2 == self.baseAsset());
       if(!derivedQuantity2) return; //in process of changing assets
-      return smartFormat(Decimal.round(new Decimal(derivedQuantity1).div(derivedQuantity2), 8, Decimal.MidpointRounding.ToEven).toFloat());
+      return smartFormat(Decimal.round(new Decimal(derivedQuantity1).div(derivedQuantity2), 8).toFloat());
     }
   }
   
@@ -333,7 +334,7 @@ OrdersViewModel.deriveOpenOrderExpiresIn = function(blockIndexCreatedAt, expirat
 }
 
 OrdersViewModel.deriveOpenOrderBuySellLeft = function(whole, part) {
-  var pctLeft = (whole == 0 && part == 0) ? 1 : part / whole;
+  var pctLeft = part / whole;
   if(pctLeft >= .30) { //30%+ 
     labelType = 'green';
   } else if(pctLeft >= .15) { //15%+
