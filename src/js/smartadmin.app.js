@@ -426,9 +426,8 @@ function nav_page_height() {
     $.left_panel.css('min-height', windowHeight + 'px');
     $.root_.css('min-height', windowHeight + 'px');
     //COUNTERWALLETD: START MOD
-    $('#chatPane').css('min-height', windowHeight + 'px');
-    $('#chatContentDiv').css('min-height', (windowHeight - 50 - 40) + 'px');
-    //$('#chatContentInnerDiv').slimScroll({ height: (windowHeight - 50 - 32) + 'px' });
+    $('#chatPane').css('height', windowHeight + 'px');
+    $('#chatContentDiv').css('height', (windowHeight - 50 - 40) + 'px');
     $('#chatContentInnerDiv').slimScroll({ height: 'auto' });
     //COUNTERWALLETD: END MOD
   }
@@ -1520,7 +1519,7 @@ function runDataTables(specificTableID, destroyOption, extraProps) {
         "sButtonText" : 'Save <span class="caret" />',
         "aButtons" : ["csv", "xls", "pdf"]
       }],
-      "sSwfPath" : "assets/copy_csv_xls_pdf.swf"
+      "sSwfPath" : "js/plugin/datatables/media/swf/copy_csv_xls_pdf.swf"
     },
     "fnInitComplete" : function(oSettings, json) {
       $(this).closest('#dt_table_tools_wrapper').find('.DTTT.btn-group').addClass('table_tools_group').children('a.btn').each(function() {
