@@ -449,7 +449,6 @@ function nav_page_height() {
 $('#main').resize(function() {
   nav_page_height();
   check_if_mobile_width();
-  resize_chatbox();
 })
 
 $('nav').resize(function() {
@@ -461,13 +460,6 @@ function check_if_mobile_width() {
     $.root_.addClass('mobile-view-activated')
   } else if ($.root_.hasClass('mobile-view-activated')) {
     $.root_.removeClass('mobile-view-activated');
-  }
-}
-
-function resize_chatbox() {
-  /* resizing chatbox when visible and over #main */
-  if ($('#chatPane').css('display')=='block' && $('#main').css('margin-right')=='0px') {
-    $('#chatPane').css('width', ($('#main').width()-5)+'px');
   }
 }
 
