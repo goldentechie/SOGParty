@@ -79,7 +79,7 @@ function fetchData(url, onSuccess, onError, postdata, extraAJAXOpts, isJSONRPC, 
   var ajaxOpts = {
       type: !postdata ? "GET" : "POST",
       data: postdata,
-      //crossDomain: true,
+      //dataType: dataType, 
       url: u,
       success: function(res) {
         if(onSuccess) {
