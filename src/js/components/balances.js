@@ -122,10 +122,11 @@ function CreateNewAddressModalViewModel() {
     var newAddress = null;
 
     if(!self.forWatchOnly()) {
-      newAddress = WALLET.BITCOIN_WALLET.generateAddress();
-      var i = WALLET.BITCOIN_WALLET.addresses.length - 1;
-      var privkey = WALLET.BITCOIN_WALLET.getPrivateKey(i);
-      WALLET.addAddress(privkey);
+      WALLET.BITCOIN_WALLET.generateAddress();
+      var i = WALLET.BITCOIN_WALLET.getPrivateKeys().length - 1;
+      var hd = WALLET.BITCOIN_WALLET.getPrivateKey(i);
+      newAddress = hd.priv.getBitcoinAddress().toString();
+      WALLET.addAddress(hd.priv);
     } else {
       newAddress = self.watchAddress();
       WALLET.addWatchOnlyAddress(newAddress);
@@ -339,7 +340,7 @@ function SweepModalViewModel() {
     //Get the address for this privatekey
     var key = new Bitcoin.ECKey(self.privateKey());
     assert(key.priv !== null && key.compressed !== null, "Private key not valid!"); //should have been checked already
-    return key.getAddress(NETWORK_VERSION).toString();
+    return key.getBitcoinAddress().toString();
   }, self);
   self.numPrimedTxoutsForPrivateKey = ko.observable(null);
   
@@ -700,10 +701,9 @@ function SignMessageModalViewModel() {
   self.doAction = function() {
     assert(self.validationModel.isValid(), "Cannot sign");
     var key = WALLET.getAddressObj(self.address()).KEY;
-    var hexSignedMessage = Bitcoin.Message.sign(key, self.message());
-    $.jqlog.debug('hexSignedMessage: '+hexSignedMessage);
+    var hexSignedMessage = Bitcoin.Message.signMessage(key, self.message(), key.compressed);
     self.signedMessage(self.signatureFormat() == 'base64'
-      ? Bitcoin.convert.bytesToBase64(hexSignedMessage) : Bitcoin.convert.bytesToHex(hexSignedMessage));
+      ? Bitcoin.convert.bytesToBase64(Bitcoin.convert.hexToBytes(hexSignedMessage)) : hexSignedMessage);
     $("#signedMessage").effect("highlight", {}, 1500);
     //Keep the form up after signing, the user will manually press Close to close it...
   }

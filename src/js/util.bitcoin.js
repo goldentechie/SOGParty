@@ -15,7 +15,8 @@ function denormalizeQuantity(quantity, divisible) {
 
 function hashToB64(content) {
   //used for storing address alias data, for instance
-  return Bitcoin.Crypto.SHA256(content).toString(Bitcoin.Crypto.enc.Base64);  
+  //return Bitcoin.Crypto.SHA256(content).toString(Bitcoin.Crypto.enc.Base64);
+  return Bitcoin.convert.bytesToBase64(Bitcoin.Crypto.SHA256(content, {asBytes: true}));  
 }
 
 function smartFormat(num, truncateDecimalPlacesAtMin, truncateDecimalPlacesTo) { //arbitrary rules to make quantities formatted a bit more friendly
