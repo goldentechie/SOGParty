@@ -230,12 +230,7 @@ $(document).ready(function() {
     //get the link
     var $this = $(this);
     $.loginURL = $this.attr('href');
-    
-    if (seelingBTC()) {
-      $.logoutMSG = "<span style='color:red;font-weight:bold'>If you log out, any Bitcoin sell orders you have open will probably not be filled.</span>";
-    } else {
-      $.logoutMSG = $this.data('logout-msg');
-    }
+    $.logoutMSG = $this.data('logout-msg');
 
     // ask verification
     $.SmartMessageBox({

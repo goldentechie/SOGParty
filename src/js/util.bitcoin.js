@@ -15,8 +15,7 @@ function denormalizeQuantity(quantity, divisible) {
 
 function hashToB64(content) {
   //used for storing address alias data, for instance
-  //return Bitcoin.Crypto.SHA256(content).toString(Bitcoin.Crypto.enc.Base64);
-  return Bitcoin.convert.bytesToBase64(Bitcoin.Crypto.SHA256(content, {asBytes: true}));  
+  return Bitcoin.Crypto.SHA256(content).toString(Bitcoin.Crypto.enc.Base64);  
 }
 
 function smartFormat(num, truncateDecimalPlacesAtMin, truncateDecimalPlacesTo) { //arbitrary rules to make quantities formatted a bit more friendly
@@ -121,22 +120,10 @@ function testnetBurnDetermineEarned(blockHeight, burned) {
   return normalizeQuantity(earned);
 }
 
-/*
-Blockchain info uses a simple Base58.encode as defaut format.
-Bitcoinjs-lib detect a Base64 format because length is also 44
-Here we assume that if key length is 44 and not end by = we have
-a blockchain.info base58 encoded key.
-TODO: it's true also for the last bitcoinjs version=> make a PR
-*/
-function isBase58BlockchainInfoKey(privateKey) {
-  return privateKey.length==44 && privateKey.indexOf("=")==-1;
-}
-
-function BitcoinECKey(privateKey) {
-  if (isBase58BlockchainInfoKey(privateKey)) {
-    privateKey = Bitcoin.base58.decode(privateKey);
-    return Bitcoin.ECKey(privateKey, false, NETWORK_VERSION);
+function isWifKey(privateKey) {
+  if (USE_TESTNET) {
+    return privateKey.length==52 && (privateKey[0]=='c');
+  } else {
+    return privateKey.length==52 && (privateKey[0]=='L' || privateKey[0]=='K');
   }
-  return Bitcoin.ECKey(privateKey);
 }
-

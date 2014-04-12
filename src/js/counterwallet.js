@@ -89,17 +89,6 @@ function loadServersListAndSettings() {
   });
 }
 
-function seelingBTC() {
-  return (window.OPEN_ORDER_FEED.sellBTCOrdersCount() +
-          window.PENDING_ACTION_FEED.pendingSellBTCOrdersCount() +
-          window.WAITING_BTCPAY_FEED.entries().length) > 0;
-}
-
-function warningOnExit() {
-  if (seelingBTC()) {
-    return "If you log out, any Bitcoin sell orders you have open will probably not be filled.";
-  }
-}
 
 /***********
  * POST-JQUERY INIT
@@ -119,6 +108,4 @@ $(document).ready(function() {
   });
   
   loadServersListAndSettings();
-
-  window.onbeforeunload = warningOnExit;
 });
