@@ -451,8 +451,9 @@ function ChatSetHandleModalViewModel() {
     }
     //Save the handle back at counterwalletd
     multiAPI("store_chat_handle", [WALLET.identifier(), self.newHandle()], function(data, endpoint) {
+      CHAT_FEED.handle(self.newHandle());
       self.hide();
-      CHAT_FEED.showChat();
+      CHAT_FEED._showChatWindow();
     });
   }
   
