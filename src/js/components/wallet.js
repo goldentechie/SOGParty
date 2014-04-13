@@ -11,13 +11,15 @@ function WalletViewModel() {
   
   self.isNew = ko.observable(false); //set to true if we can't find the user's prefs when logging on. if set, we'll show some intro text on their login, etc.
   
+  self.isSellingBTC = ko.observable(false); //updated by the btcpay feed
+
   self.addAddress = function(key) {
     //adds a key to the wallet, making a new address object on the wallet in the process
     //(assets must still be attached to this address, with updateBalances() or other means...)
     //also, a label should already exist for the address in PREFERENCES.address_aliases by the time this is called
 
     //derive an address from the key (for the appropriate network)
-    var address = key.getAddress(NETWORK_VERSION).toString();
+    var address = key.getBitcoinAddress().toString();
     //Make sure this address doesn't already exist in the wallet (sanity check)
     assert(!self.getAddressObj(address), "Cannot addAddress: address already exists in wallet!");
     //see if there's a label already for this address that's stored in PREFERENCES, and use that if so
