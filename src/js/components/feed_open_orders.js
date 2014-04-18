@@ -2,33 +2,15 @@
 function OpenOrderViewModel(order) {
   assert(order['tx_index'], "Must be a valid order object");
   var self = this;
-  self.TX_HASH = order['tx_hash'];
-  self.TX_INDEX = order['tx_index'];
-  self.SOURCE = order['source'];
-  self.EXPIRE_INDEX = order['expire_index'];
-  
-  self.GET_QUANTITY = smartFormat(normalizeQuantity(order['get_quantity'], order['_get_asset_divisible']));
-  self.GET_ASSET = order['get_asset'];
-  self.GET_ASSET_DIVISIBLE = order['_get_asset_divisible'];
-  self.GIVE_QUANTITY = smartFormat(normalizeQuantity(order['give_quantity'], order['_give_asset_divisible']));
-  self.GIVE_ASSET = order['give_asset'];
-  self.GIVE_ASSET_DIVISIBLE = order['_give_asset_divisible'];
-
+  self.ORDER = order;
   //break out the dynamic (changing) fields as observables
   self.rawGiveRemaining = ko.observable(order['give_remaining']);
   self.rawGetRemaining = ko.observable(order['get_remaining']);
   self.feeRemaining = ko.observable(order['fee_remaining']);
   self.now = ko.observable(new Date()); //auto updates from the parent model every minute
   
-  self.dispSource = getAddressLabel(order['source']);
-  self.dispRawGiveRemaining = ko.computed(function() {
-    return smartFormat(normalizeQuantity(self.rawGiveRemaining(), self.GIVE_ASSET_DIVISIBLE));
-  }, self);
-  self.dispRawGetRemaining = ko.computed(function() {
-    return smartFormat(normalizeQuantity(self.rawGetRemaining(), self.GET_ASSET_DIVISIBLE));
-  }, self);
   self.expiresInNumBlocks = ko.computed(function() {
-    return self.EXPIRE_INDEX - WALLET.networkBlockHeight();
+    return self.ORDER['expire_index'] - WALLET.networkBlockHeight();
   }, self);
   
   self.approxExpiresInTime = ko.computed(function() {
@@ -45,7 +27,7 @@ function OpenOrderViewModel(order) {
   self.cancelOpenOrder = function() {
     bootbox.dialog({
       message: "Are you sure that you want to cancel this order?<br/><br/> \
-        <b class='errorColor'>Please NOTE that this action is irreversable!</b>",
+        <b style='color:red'>Please NOTE that this action is irreversable!</b>",
       title: "Are you sure?",
       buttons: {
         success: {
@@ -60,18 +42,18 @@ function OpenOrderViewModel(order) {
           className: "btn-warning",
           callback: function() {
             //issue 0 to lock the asset
-            WALLET.doTransaction(self.SOURCE, "create_cancel",
+            WALLET.doTransaction(self.ORDER['source'], "create_cancel",
               {
-                offer_hash: self.TX_HASH,
-                source: self.SOURCE,
+                offer_hash: self.ORDER['tx_hash'],
+                source: self.ORDER['source'],
                 _type: 'order',
-                _tx_index: self.TX_INDEX
+                _tx_index: self.ORDER['tx_index']
               },
               function(txHash, data, endpoint) {
                 bootbox.alert("Your order cancellation has been submitted. " + ACTION_PENDING_NOTICE);
                 
-                if(self.GIVE_ASSET == 'BTC') {
-                  multiAPI("cancel_btc_open_order", [WALLET.identifier(), self.TX_HASH]);
+                if(self.ORDER['give_asset'] == 'BTC') {
+                  multiAPI("cancel_btc_open_order", [WALLET.identifier(), self.ORDER['tx_hash']]);
                 }
               }
             );
@@ -93,7 +75,7 @@ function OpenOrderFeedViewModel() {
 
   self.sellBTCOrdersCount = ko.computed(function() {
     return $.map(self.entries(), function(item) {       
-        return ('BTC' == item.GIVE_ASSET) ? item : null;
+        return ('BTC' == item.ORDER['give_asset']) ? item : null;
     }).length;
   }, self);
   
@@ -120,7 +102,7 @@ function OpenOrderFeedViewModel() {
 
   self.remove = function(orderTxHash) {
     self.entries.remove(function(item) {
-        return orderTxHash == item.TX_HASH;
+        return orderTxHash == item.ORDER['tx_hash'];
     });
     self.lastUpdated(new Date());
   }
