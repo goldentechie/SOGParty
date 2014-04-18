@@ -205,12 +205,20 @@ function SendModalViewModel() {
     return normalizeQuantity(self.rawBalance(), self.divisible());
   }, self);
   
+  self.dispNormalizedBalance = ko.computed(function() {
+    return smartFormat(self.normalizedBalance());
+  }, self);
+  
   self.normalizedBalRemaining = ko.computed(function() {
     if(!isNumber(self.quantity())) return null;
     var curBalance = normalizeQuantity(self.rawBalance(), self.divisible());
     var balRemaining = Decimal.round(new Decimal(curBalance).sub(parseFloat(self.quantity())), 8, Decimal.MidpointRounding.ToEven).toFloat();
     if(balRemaining < 0) return null;
     return balRemaining;
+  }, self);
+
+  self.dispNormalizedBalRemaining = ko.computed(function() {
+    return smartFormat(self.normalizedBalRemaining());
   }, self);
   
   self.validationModel = ko.validatedObservable({
@@ -319,20 +327,12 @@ function SweepModalViewModel() {
     validation: {
       validator: function (val, self, callback) {
         var numAssets = val.length;
-        var minBtcBalance = numAssets*MIN_PRIME_BALANCE;
-
-        if(self.numPrimedTxoutsForPrivateKey() === null) {
-          return false; //priv key not set yet??
-        }
-        
-        if(self.btcBalanceForPrivateKey() < minBtcBalance) {
-          var missingBtc = minBtcBalance-self.btcBalanceForPrivateKey();
-
+        if(self.numPrimedTxoutsForPrivateKey() === null) return false; //priv key not set yet??
+        if(self.numPrimedTxoutsForPrivateKey() < numAssets) {
           this.message = "We're not able to sweep all of the assets you selected. Please send "
-            + normalizeQuantity(missingBtc)
+            + (numAssets - self.numPrimedTxoutsForPrivateKey()) + " " + normalizeQuantity(MIN_PRIME_BALANCE)
             + " BTC transactions to address " + self.addressForPrivateKey() + " and try again."
           return false;
-
         }
         return true;
       },
@@ -357,7 +357,6 @@ function SweepModalViewModel() {
     return key.getAddress(NETWORK_VERSION).toString();
   }, self);
   self.numPrimedTxoutsForPrivateKey = ko.observable(null);
-  self.btcBalanceForPrivateKey = ko.observable(null);
   
   self.validationModel = ko.validatedObservable({
     privateKey: self.privateKey,
@@ -446,8 +445,7 @@ function SweepModalViewModel() {
       call_price: parseFloat(selectedAsset.ASSET_INFO['call_price']) || null,
       transfer_destination: self.destAddress(),
       encoding: 'multisig',
-      pubkey: pubkey,
-      allow_unconfirmed_inputs: true
+      pubkey: pubkey
     };
     multiAPIConsensus("create_issuance", transferData,
       function(unsignedTxHex, numTotalEndpoints, numConsensusEndpoints) {
@@ -465,17 +463,13 @@ function SweepModalViewModel() {
           });
           PENDING_ACTION_FEED.add(issuanceTxHash, "issuances", transferData);
           return callback();
-
-        }, function(jqXHR, textStatus, errorThrown, endpoint) { //on error broadcasting tx
-
-          $.jqlog.debug('Transaction error: '+textStatus);
-          // retry..
-          return callback(true, {
+        }, function() { //on error broadcasting tx
+          opsComplete.push({
             'type': 'transferOwnership',
             'result': false,
             'asset': selectedAsset.ASSET
           });
-          
+          return callback();
         });
       }, function(unmatchingResultsList) { //onConsensusError
         opsComplete.push({
@@ -483,23 +477,19 @@ function SweepModalViewModel() {
           'result': false,
           'asset': selectedAsset.ASSET
         });
-        return self.showSweepError(selectedAsset.ASSET, opsComplete);
+        return callback();
       }, function(jqXHR, textStatus, errorThrown, endpoint) { //onSysError
-
-        $.jqlog.debug('onSysError error: '+textStatus);
-        // retry..
-        return callback(true, {
+        opsComplete.push({
           'type': 'transferOwnership',
           'result': false,
           'asset': selectedAsset.ASSET
         });
-
+        return callback();
       }
     );
   }
   
   self._doSendAsset = function(asset, key, pubkey, opsComplete, adjustedBTCQuantity, callback) {
-    $.jqlog.debug('_doSendAsset: '+asset);
     if(asset == 'BTC') assert(adjustedBTCQuantity !== null);
     else assert(adjustedBTCQuantity === null);
     var selectedAsset = ko.utils.arrayFirst(self.availableAssetsToSweep(), function(item) {
@@ -530,8 +520,7 @@ function SweepModalViewModel() {
       quantity: quantity,
       asset: selectedAsset.ASSET,
       encoding: 'multisig',
-      pubkey: pubkey,
-      allow_unconfirmed_inputs: true
+      pubkey: pubkey
     };
     multiAPIConsensus("create_send", sendData, //can send both BTC and counterparty assets
       function(unsignedTxHex, numTotalEndpoints, numConsensusEndpoints) {
@@ -555,25 +544,18 @@ function SweepModalViewModel() {
           if(   selectedAsset.ASSET != 'XCP'
              && selectedAsset.ASSET != 'BTC'
              && selectedAsset.ASSET_INFO['owner'] == self.addressForPrivateKey()) {
-            $.jqlog.debug("waiting "+TRANSACTION_DELAY+"ms");
             setTimeout(function() {
               self._doTransferAsset(selectedAsset, key, pubkey, opsComplete, callback); //will trigger callback() once done
-            }, TRANSACTION_DELAY);
+            }, 250);
           } else { //no transfer, just an asset send for this asset
             return callback();  
           }
-          // TODO: add param response in json format for error callback
-        }, function(jqXHR, textStatus, errorThrown, endpoint) { //on error broadcasting tx
-
-          $.jqlog.debug('Transaction error: '+textStatus);
-          // retry..
-          return callback(true, {
+        }, function() { //on error broadcasting tx
+          opsComplete.push({
             'type': 'send',
             'result': false,
-            'asset': selectedAsset.ASSET,
-            'selectedAsset': selectedAsset
+            'asset': selectedAsset.ASSET
           });
-
         });
       }, function(unmatchingResultsList) { //onConsensusError
         opsComplete.push({
@@ -581,26 +563,16 @@ function SweepModalViewModel() {
           'result': false,
           'asset': selectedAsset.ASSET
         });
-        self.showSweepError(selectedAsset.ASSET, opsComplete);
+        return callback();
       }, function(jqXHR, textStatus, errorThrown, endpoint) { //onSysError
-
-        $.jqlog.debug('onSysError error: '+textStatus);
-        // retry..
-        return callback(true, {
+        opsComplete.push({
           'type': 'send',
           'result': false,
-          'asset': selectedAsset.ASSET,
-          'selectedAsset': selectedAsset
+          'asset': selectedAsset.ASSET
         });
-
+        return callback();
       }
     );
-  }
-
-  self.showSweepError = function(asset, opsComplete) {
-    $.jqlog.debug("Error sweeping "+asset);
-    self.shown(false);
-    self._sweepCompleteDialog(opsComplete);
   }
   
   self.doAction = function() {
@@ -628,73 +600,8 @@ function SweepModalViewModel() {
       sendsToMake.push(["BTC", key, pubkey, opsComplete, adjustedBTCQuantity]);
     }
     
-    var total = sendsToMake.length;
-    var progress = 0;
-    var sendParams = false;
-    var retryCounter = {};
-
-    var doSweep = function(retry, failedTx) {
-
-      // if retry we don't take the next sendsToMake item
-      if (retry!==true || sendParams===false) {
-
-        sendParams = sendsToMake.shift();
-        progress++;
-
-      } else if (retry) {
-
-        $.jqlog.debug("RETRY"); 
-
-        if (sendParams[0] in retryCounter) {
-          if (retryCounter[sendParams[0]]<TRANSACTION_MAX_RETRY) {
-            retryCounter[sendParams[0]]++;    
-            $.jqlog.debug("retry count: "+retryCounter[sendParams[0]]);        
-          } else {
-            sendParams = undefined;
-            opsComplete.push(failedTx);
-            $.jqlog.debug("max retry.. stopping"); 
-          }
-        } else {
-          retryCounter[sendParams[0]] = 1;
-          $.jqlog.debug("retry count: 1"); 
-        }
-
-      }
-
-      $.jqlog.debug(sendParams); 
-       
-      if(sendParams === undefined) {
-        self.shown(false);
-        self._sweepCompleteDialog(opsComplete);
-      } else {
-        $.jqlog.debug("processing tx "+progress+" / "+total+" ("+sendParams[0]+")");
-        if (retry && failedTx['type']=='transferOwnership') {
-
-          //TODO: this is ugly. transfert asset must be include in sendsToMake array
-          self._doTransferAsset(failedTx['selectedAsset'], sendParams[1], sendParams[2], sendParams[4], function(retry, failedTx) {
-            $.jqlog.debug("waiting "+TRANSACTION_DELAY+"ms");
-            setTimeout(function() {
-              doSweep(retry, failedTx);
-            }, TRANSACTION_DELAY);
-          });
-
-        } else {
-
-          self._doSendAsset(sendParams[0], sendParams[1], sendParams[2], sendParams[3], sendParams[4], function(retry, failedTx) {
-            $.jqlog.debug("waiting "+TRANSACTION_DELAY+"ms");
-            setTimeout(function() {
-              doSweep(retry, failedTx);
-            }, TRANSACTION_DELAY);
-          });
-
-        }
-        
-      }
-    }
-    doSweep();
-
     //Make send calls sequentially
-    /*function makeSweeps(){
+    function makeSweeps(){
       var d = jQuery.Deferred();
       var doSweep = function() {
         var sendParams = sendsToMake.shift();
@@ -712,7 +619,7 @@ function SweepModalViewModel() {
     makeSweeps().then(function() {
       self.shown(false);
       self._sweepCompleteDialog(opsComplete);
-    }); */   
+    });    
   }
   
   self.show = function(resetForm) {
@@ -757,7 +664,6 @@ function SweepModalViewModel() {
             "BTC", data[0]['confirmedRawBal'], normalizeQuantity(data[0]['confirmedRawBal'])));
         }
         self.numPrimedTxoutsForPrivateKey(data[0]['numPrimedTxouts']);
-        self.btcBalanceForPrivateKey(data[0]['confirmedRawBal']);
       });
     });
   });  
@@ -851,6 +757,10 @@ function TestnetBurnModalViewModel() {
   self.quantityXCPToBeCreated = ko.computed(function() { //normalized
     if(!self.btcBurnQuantity() || !parseFloat(self.btcBurnQuantity())) return null;
     return testnetBurnDetermineEarned(WALLET.networkBlockHeight(), self.btcBurnQuantity());
+  }, self);
+  
+  self.dispQuantityXCPToBeCreated = ko.computed(function() { 
+    return numberWithCommas(self.quantityXCPToBeCreated());
   }, self);
   
   self.maxPossibleBurn = ko.computed(function() { //normalized
