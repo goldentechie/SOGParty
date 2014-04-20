@@ -29,10 +29,9 @@ Browser Support
 
 - Chrome 23+ (Preferred)
 - Firefox 25+
+- Internet Explorer 11+ (IE9 and IE10 NOT supported)
 - Safari 7+
 - Opera 15+
-
-Notably, Internet Explorer is **not** supported, due to its lack of full Content-Security-Policy support (even with IE 11).
 
 **Mobile**
 

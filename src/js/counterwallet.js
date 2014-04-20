@@ -63,20 +63,6 @@ function produceCWServerList() {
   }));
 }
 
-function initGoogleAnalytics() {
-  if(!GOOGLE_ANALYTICS_UAID) return;
-  
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', GOOGLE_ANALYTICS_UAID]);
-  _gaq.push(['_trackPageview']);
-  
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-}
-
 function initRollbar() {
   /* TODO: Try to load rollbar earlier, possibly... (However, as we get the accessToken from servers.json, we'd have
    * to put all of that logic in <head> for instance to be able to do that. So this should hopefully work fine.) 
@@ -104,7 +90,6 @@ function loadServersListAndSettings() {
     else
       cwURLs(data['servers']);
     produceCWServerList();
-    initGoogleAnalytics();
     initRollbar();
   }).fail(function() {
     //File not found, just use the local box as the API server
@@ -130,9 +115,8 @@ $(document).ready(function() {
       msie6: true, //kill it with fire
       msie7: true, //kill it with fire
       msie8: true, //kill it with fire
-      msie9: true, //DOES NOT SUPPORT FULL Content-Security-Policy, as well as Window.msCrypto
-      msie10: true, //DOES NOT SUPPORT FULL Content-Security-Policy
-      msie11: true, //this is IE11, which, yes, DOES NOT SUPPORT FULL Content-Security-Policy (fuuuckkkkkk)
+      msie9: true, //require IE11
+      msie10: true, //require IE11
       firefox15: true,
       firefox16: true,
       firefox17: true,
@@ -156,7 +140,7 @@ $(document).ready(function() {
       safari6: true
     },
     imagePath: 'assets/', // Path where images are located
-    display: ['chrome', 'firefox', 'safari'],
+    display: ['chrome', 'firefox', 'safari', 'opera', 'msie'],
     browserInfo: { // Settings for which browsers to display
       safari: {
         text: 'Safari',
@@ -165,13 +149,12 @@ $(document).ready(function() {
       opera: {
         text: 'Opera',
         url: 'http://www.opera.com/download/'
-      }      
-    },
-    header: 'Your browser is not supported with Counterwallet',
-    paragraph1: "Counterwallet's security features require a newer browser than what you are using."
-      + " Also, note that Microsoft Internet Explorer is not supported due to it's lack of full support for Content-Security-Policy restrictions.",
-    close: false,
-    closeESC: false
+      },      
+      msie: {
+        text: 'Internet Explorer (11+)',
+        url: 'http://windows.microsoft.com/en-us/internet-explorer/download-ie'
+      }
+    }        
   });
   
   loadServersListAndSettings();
