@@ -314,17 +314,15 @@ function SweepModalViewModel() {
     required: true,
     validation: {
       validator: function (val, self) {
-        var key = null;
-        try {
-          key = BitcoinECKey(self.privateKey()); 
-        } catch(e) {}
+  
+        var key = BitcoinECKey(self.privateKey());      
         
         /*$.jqlog.debug('adress:'+key.getBitcoinAddress());
         $.jqlog.debug('compressed:'+key.compressed);
         $.jqlog.debug('version:'+key.version);
         $.jqlog.debug('priv:'+key.priv);*/
 
-        return key!=null && key.priv !== null && key.compressed !== null;
+        return key.priv !== null && key.compressed !== null;
       },
       message: 'Not a valid' + (USE_TESTNET ? ' TESTNET ' : ' ') + 'private key.',
       params: self
@@ -337,10 +335,7 @@ function SweepModalViewModel() {
     validation: {
       validator: function (val, self, callback) {
         var numAssets = val.length;
-        var minBtcBalance = numAssets*MIN_PRIME_BALANCE+MIN_FEE;
-        if (self.txoutsCountForPrivateKey>1) {
-          minBtcBalance += MIN_FEE; // if we need merge outputs
-        }
+        var minBtcBalance = numAssets*MIN_PRIME_BALANCE;
         
         if (self.btcBalanceForPrivateKey() < minBtcBalance) {
           var missingBtc = minBtcBalance-self.btcBalanceForPrivateKey();
@@ -560,19 +555,17 @@ function SweepModalViewModel() {
   // in first step, we merge all outputs for chaining: each change output serve as input for next transaction.
   // so the final balance for btc transfert is the value of last change that we get with extractChangeTxoutValue()
   // TODO: think for a more economic way to have a reliable amount for the final tx (BTC).
-  self.mergeOutputs = function(key, pubkey, callback, fees) {
+  self.mergeOutputs = function(key, pubkey, callback) {
     if (self.txoutsCountForPrivateKey>1) {
 
       var message = "Preparing output for transactions chaining";
       self.sweepingProgressionMessage(message);
       $.jqlog.debug(message);
 
-      fees = (typeof fees === "undefined") ? MIN_FEE : fees;
-
       var sendData = {
         source: self.addressForPrivateKey(),
         destination: self.addressForPrivateKey(),
-        quantity: self.btcBalanceForPrivateKey()-fees,
+        quantity: self.btcBalanceForPrivateKey()-MIN_FEE,
         asset: 'BTC',
         encoding: 'multisig',
         pubkey: pubkey,
@@ -581,26 +574,7 @@ function SweepModalViewModel() {
 
       var onTransactionError = function() {
         if (arguments.length==4) {
-          var match = arguments[1].match(/Insufficient bitcoins at address [^\s]+\. \(Need approximately ([\d]+\.[\d]+) BTC/);
-          if (match!=null) {
-            // if insufficient bitcoins we retry with estimated fees return by counterpartyd
-            var minEstimateFee = denormalizeQuantity(parseFloat(match[1])) - (self.btcBalanceForPrivateKey() - fees);
-            $.jqlog.debug('Insufficient fees. Need approximately ' + minEstimateFee);
-            if (minEstimateFee > self.btcBalanceForPrivateKey()) {
-              self.shown(false);
-              bootbox.alert(arguments[1]);
-            } else {             
-              $.jqlog.debug('Retry with estimated fees.');
-              setTimeout(function() {
-                self.mergeOutputs(key, pubkey, callback, minEstimateFee);
-              }, 500); //wait 0.5s by courtesy
-            }           
-          } else {
-            self.shown(false);
-            bootbox.alert(arguments[1]);
-          }
-          
-
+          bootbox.alert(arguments[1]);
         } else {
           bootbox.alert('Consensus Error!');
         }
@@ -611,7 +585,7 @@ function SweepModalViewModel() {
 
       var onTransactionBroadcasted = function(sendTxHash, endpoint) { //broadcast was successful
         // No need to display this transaction in notifications
-        $.jqlog.debug("waiting " + TRANSACTION_DELAY + "ms");
+        $.jqlog.debug("waiting "+TRANSACTION_DELAY+"ms");
         setTimeout(function() {
           callback(); //will trigger callback() once done
         }, TRANSACTION_DELAY);
@@ -635,7 +609,7 @@ function SweepModalViewModel() {
   }
   
   self._doSendAsset = function(asset, key, pubkey, opsComplete, adjustedBTCQuantity, callback) {
-    $.jqlog.debug('_doSendAsset: ' + asset);
+    $.jqlog.debug('_doSendAsset: '+asset);
     
     //TODO: remove this
     if(asset == 'BTC') assert(adjustedBTCQuantity !== null);
@@ -646,9 +620,9 @@ function SweepModalViewModel() {
     });
     var sendTx = null, i = null;
 
-    $.jqlog.debug("btcBalanceForPrivateKey: " + self.btcBalanceForPrivateKey());
-    var quantity = (asset == 'BTC') ? (self.btcBalanceForPrivateKey() - MIN_FEE) : selectedAsset.RAW_BALANCE;
-    var normalizedQuantity = (asset == 'BTC') ? normalizeQuantity(quantity) : selectedAsset.NORMALIZED_BALANCE;
+    $.jqlog.debug("btcBalanceForPrivateKey: "+self.btcBalanceForPrivateKey());
+    var quantity = (asset=='BTC') ? (self.btcBalanceForPrivateKey()-MIN_FEE) : selectedAsset.RAW_BALANCE;
+    var normalizedQuantity = (asset=='BTC') ? normalizeQuantity(quantity) : selectedAsset.NORMALIZED_BALANCE;
     
     assert(selectedAsset);
     
@@ -696,7 +670,7 @@ function SweepModalViewModel() {
           // here we adjust the BTC balance whith the change output
           if (selectedAsset.ASSET != 'BTC') {
             var newBtcBalance = self.extractChangeTxoutValue(sendData.source, sendTx);
-            $.jqlog.debug("New BTC balance: " + newBtcBalance);
+            $.jqlog.debug("New BTC balance: "+newBtcBalance);
             self.btcBalanceForPrivateKey(newBtcBalance);
           }
 
@@ -704,7 +678,7 @@ function SweepModalViewModel() {
           if (selectedAsset.ASSET != 'XCP'
              && selectedAsset.ASSET != 'BTC'
              && selectedAsset.ASSET_INFO['owner'] == self.addressForPrivateKey()) {
-            $.jqlog.debug("waiting " + TRANSACTION_DELAY + "ms");
+            $.jqlog.debug("waiting "+TRANSACTION_DELAY+"ms");
             setTimeout(function() {
               self._doTransferAsset(selectedAsset, key, pubkey, opsComplete, callback); //will trigger callback() once done
             }, TRANSACTION_DELAY);
@@ -715,7 +689,7 @@ function SweepModalViewModel() {
           // TODO: add param response in json format for error callback
         }, function(jqXHR, textStatus, errorThrown, endpoint) { //on error broadcasting tx
 
-          $.jqlog.debug('Transaction error: ' + textStatus);
+          $.jqlog.debug('Transaction error: '+textStatus);
           // retry..
           return callback(true, {
             'type': 'send',
@@ -735,7 +709,7 @@ function SweepModalViewModel() {
         self.showSweepError(selectedAsset.ASSET, opsComplete);
       }, function(jqXHR, textStatus, errorThrown, endpoint) { //onSysError
 
-        $.jqlog.debug('onSysError error: ' + textStatus);
+        $.jqlog.debug('onSysError error: '+textStatus);
         // retry..
         return callback(true, {
           'type': 'send',
@@ -782,16 +756,16 @@ function SweepModalViewModel() {
 
     var doSweep = function(retry, failedTx) {
       // if retry we don't take the next sendsToMake item
-      if (retry !== true || sendParams === false) {
+      if (retry!==true || sendParams===false) {
 
         sendParams = sendsToMake.shift();
 
       } else if (retry) {
 
         if (sendParams[0] in retryCounter) {
-          if (retryCounter[sendParams[0]] < TRANSACTION_MAX_RETRY) {
+          if (retryCounter[sendParams[0]]<TRANSACTION_MAX_RETRY) {
             retryCounter[sendParams[0]]++;    
-            $.jqlog.debug("retry count: " + retryCounter[sendParams[0]]);        
+            $.jqlog.debug("retry count: "+retryCounter[sendParams[0]]);        
           } else {
             sendParams = undefined;
             opsComplete.push(failedTx);
@@ -841,7 +815,7 @@ function SweepModalViewModel() {
   }
   
   self.show = function(resetForm) {
-    if(typeof(resetForm) === 'undefined') resetForm = true;
+    if(typeof(resetForm)==='undefined') resetForm = true;
     if(resetForm) self.resetForm();
     self.shown(true);
   }  
@@ -867,32 +841,26 @@ function SweepModalViewModel() {
           assetInfo = $.grep(assetsData, function(e) { return e['asset'] == balancesData[i]['asset']; })[0]; //O(n^2)
           self.availableAssetsToSweep.push(new SweepAssetInDropdownItemModel(
             balancesData[i]['asset'], balancesData[i]['quantity'], balancesData[i]['normalized_quantity'], assetInfo));
-          
         }
-
-        //Also get the BTC balance at this address and put at head of the list
-        //We just check if unconfirmed balance > 0.      
-        WALLET.retriveBTCAddrsInfo([address], function(data) {
-          $.jqlog.debug(data);
-          //TODO: counterwalletd return unconfirmedRawBal==0, after fixing we need use unconfirmedRawBal
-          var unconfirmedRawBal = data[0]['confirmedRawBal']; 
-          if(unconfirmedRawBal > 0) {
-            //We don't need to supply asset info to the SweepAssetInDropdownItemModel constructor for BTC
-            // b/c we won't be transferring any asset ownership with it
-            var viewModel = new SweepAssetInDropdownItemModel("BTC", unconfirmedRawBal, normalizeQuantity(unconfirmedRawBal));
-            self.availableAssetsToSweep.unshift(viewModel);
-            assets.push("BTC");
-            self.btcBalanceForPrivateKey(data[0]['confirmedRawBal']);
-            self.txoutsCountForPrivateKey = data[0]['rawUtxoData'].length;
-
-          }
-          // select all assets by default
-          $('#availableAssetsToSweep').val(assets);
-          $('#availableAssetsToSweep').change();
-        });
-
-      });      
+      });
       
+      //Also get the BTC balance at this address and put at head of the list
+      //We just check if unconfirmed balance > 0. 
+      
+      WALLET.retriveBTCAddrsInfo([address], function(data) {
+        $.jqlog.debug(data);
+        //TODO: counterwalletd return unconfirmedRawBal==0, after fixing we need use unconfirmedRawBal
+        var unconfirmedRawBal = data[0]['confirmedRawBal']; 
+        if(unconfirmedRawBal>0) {
+          //We don't need to supply asset info to the SweepAssetInDropdownItemModel constructor for BTC
+          // b/c we won't be transferring any asset ownership with it
+          var viewModel = new SweepAssetInDropdownItemModel("BTC", unconfirmedRawBal, normalizeQuantity(unconfirmedRawBal));
+          self.availableAssetsToSweep.unshift(viewModel);
+          self.btcBalanceForPrivateKey(data[0]['confirmedRawBal']);
+          self.txoutsCountForPrivateKey = data[0]['rawUtxoData'].length;
+        }
+        
+      });
     });
   });  
 }
