@@ -36,7 +36,7 @@ function ChangeAddressLabelModalViewModel() {
   
   self.doAction = function() {
     var addressHash = hashToB64(self.address());
-    var label = $("<div/>").html(self.newLabel()).text().stripTags();
+    var label = $("<div/>").html(self.newLabel()).text();
     //^ remove any HTML tags from the text
     PREFERENCES.address_aliases[addressHash] = label;
     //^ update the preferences on the server 
@@ -142,11 +142,10 @@ function CreateNewAddressModalViewModel() {
     } else {
       PREFERENCES['watch_only_addresses'].push(newAddress); //can't use the hash here, unfortunately
     }
-    var sanitizedDescription = self.description().stripTags();
-    PREFERENCES['address_aliases'][newAddressHash] = sanitizedDescription;
+    PREFERENCES['address_aliases'][newAddressHash] = self.description();
     
     //manually set the address in this case to get around the chicken and egg issue here (and have client side match the server)
-    WALLET.getAddressObj(newAddress).label(sanitizedDescription);
+    WALLET.getAddressObj(newAddress).label(self.description());
 
     //save prefs to server
     multiAPI("store_preferences", [WALLET.identifier(), PREFERENCES], function(data, endpoint) {
