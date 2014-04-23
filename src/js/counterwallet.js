@@ -126,13 +126,31 @@ $(document).ready(function() {
   //Reject browsers that don't support the features we need (especially CSP 1.0 and window.crypto)
   $.reject({  
     reject: {
-      msie5: true, //kill it with fire
+      msie1: true,
+      msie2: true,
+      msie3: true,
+      msie4: true,
+      msie5: true, 
       msie6: true, //kill it with fire
       msie7: true, //kill it with fire
       msie8: true, //kill it with fire
       msie9: true, //DOES NOT SUPPORT FULL Content-Security-Policy, as well as Window.msCrypto
       msie10: true, //DOES NOT SUPPORT FULL Content-Security-Policy
       msie11: true, //this is IE11, which, yes, DOES NOT SUPPORT FULL Content-Security-Policy (fuuuckkkkkk)
+      firefox1: true,
+      firefox2: true,
+      firefox3: true,
+      firefox4: true,
+      firefox5: true,
+      firefox6: true,
+      firefox7: true,
+      firefox8: true,
+      firefox9: true,
+      firefox10: true,
+      firefox11: true,
+      firefox12: true,
+      firefox13: true,
+      firefox14: true,
       firefox15: true,
       firefox16: true,
       firefox17: true,
@@ -143,32 +161,72 @@ $(document).ready(function() {
       firefox22: true,
       firefox23: true,
       firefox24: true,
+      chrome1: true,
+      chrome2: true,
+      chrome3: true,
+      chrome4: true,
+      chrome5: true,
+      chrome6: true,
+      chrome7: true,
+      chrome8: true,
+      chrome9: true,
+      chrome10: true,
+      chrome11: true,
+      chrome12: true,
+      chrome13: true,
+      chrome14: true,
+      chrome15: true,
+      chrome16: true,
+      chrome17: true,
       chrome18: true,
       chrome19: true,
       chrome20: true,
       chrome21: true,
       chrome22: true,
+      opera1: true,
+      opera2: true,
+      opera3: true,
+      opera4: true,
+      opera5: true,
+      opera6: true,
+      opera7: true,
+      opera8: true,
       opera9: true,
       opera10: true,
       opera11: true,
       opera12: true,
+      opera13: true,
+      opera14: true,
+      safari1: true,
+      safari2: true,
+      safari3: true,
+      safari4: true,
+      safari5: true,
       safari5: true,
       safari6: true
     },
     imagePath: 'assets/', // Path where images are located
     display: ['chrome', 'firefox', 'safari'],
     browserInfo: { // Settings for which browsers to display
+      chrome: {
+        text: 'Chrome 23+',
+        url: 'http://www.google.com/chrome/‎'
+      },
+      firefox: {
+        text: 'Firefox 25+',
+        url: 'http://www.mozilla.org/en-US/firefox/new/‎'
+      },
       safari: {
-        text: 'Safari',
+        text: 'Safari 7+',
         url: 'http://www.apple.com/safari/download/'
       },
       opera: {
-        text: 'Opera',
+        text: 'Opera 15+',
         url: 'http://www.opera.com/download/'
       }      
     },
     header: 'Your browser is not supported with Counterwallet',
-    paragraph1: "Counterwallet's security features require a newer browser than what you are using."
+    paragraph1: "Counterwallet's security features require a newer browser than what you are using. We recommend Chrome for the best user experience."
       + " Also, note that Microsoft Internet Explorer is not supported due to it's lack of full support for Content-Security-Policy restrictions.",
     close: false,
     closeESC: false
