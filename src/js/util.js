@@ -2,6 +2,7 @@
 /*
  * STRING PROTOTYPES
  */
+
 if (typeof String.prototype.startsWith != 'function') {
   // see below for better implementation!
   String.prototype.startsWith = function (str){
@@ -21,27 +22,43 @@ if (typeof String.prototype.stripTags != 'function') {
   };
 }
 
-if (typeof String.prototype.capitalize != 'function') {
-  String.prototype.capitalize = function() {
-      return this.charAt(0).toUpperCase() + this.slice(1);
-  }
-}
-
 
 /*
  * ARRAY PROTOTYPES
  */
+
+// Array.prototype breaks Bitcore
+
+arrayRemove = function(arr, what) { 
+  var ax;
+  while ((ax = arr.indexOf(what)) !== -1) {
+    arr.splice(ax, 1);
+  }
+  return arr;
+};
+
+arrayUnique = function(arr) { //modified from http://stackoverflow.com/a/9229821
+    var prim = {"boolean":{}, "number":{}, "string":{}}, obj = [];
+
+    return arr.filter(function(x) {
+        var t = typeof x;
+        return (t in prim) ? 
+            !prim[t][x] && (prim[t][x] = 1) :
+            obj.indexOf(x) < 0 && obj.push(x);
+    });
+}
+
+/*if (typeof Array.prototype.contains != 'function') {
+  Array.prototype.contains = function(element){
+      return this.indexOf(element) > -1;
+  };
+}
+
 if (typeof Array.prototype.last != 'function') {
     Array.prototype.last = function(){
         return this[this.length - 1];
     };
 };
-
-if (typeof Array.prototype.contains != 'function') {
-  Array.prototype.contains = function(element){
-      return this.indexOf(element) > -1;
-  };
-}
 
 if (typeof Array.prototype.remove != 'function') {
   Array.prototype.remove = function() { //http://stackoverflow.com/a/3955096
@@ -68,12 +85,7 @@ if (typeof Array.prototype.unique != 'function') {
       });
   }
 }
-
-function range(start, count) {
-  return Array.apply(0, Array(count)).map(function (element, index) { 
-     return index + start;  
-  });
-}
+*/
 
 /*
  * OTHER METHODS
