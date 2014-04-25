@@ -222,7 +222,7 @@ $(document).ready(function() {
     var $this = $(this);
     $.loginURL = $this.attr('href');
     
-    if (needWarningOnExit()) {
+    if (window.WALLET && WALLET.isSellingBTC()) {
       $.logoutMSG = "<span class='bold txt-color-red'>If you log out, any Bitcoin sell orders you have open will probably not be filled.</span>";
     } else {
       $.logoutMSG = $this.data('logout-msg');
