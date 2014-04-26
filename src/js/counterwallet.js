@@ -1,7 +1,16 @@
 /***********
  * GLOBAL INITALIZATION
  ***********/
+
+
 function assert(condition, message) { if (!condition) throw message || "Assertion failed"; }
+function checkArgType(arg, type) { assert((typeof arg).toLowerCase() == type.toLowerCase(), "Invalid argument type"); }
+
+function checkArgsType(args, types) {
+  for (var a=0; a<args.length; a++) {
+    checkArgType(args[a], types[a]);
+  }
+}
 
 //Set up logging (jqlog) and monkey patch jqlog with a debug function
 $.jqlog.enabled(true);
@@ -217,11 +226,11 @@ $(document).ready(function() {
     browserInfo: { // Settings for which browsers to display
       chrome: {
         text: 'Chrome 23+',
-        url: 'https://www.google.com/intl/en/chrome/browser/'
+        url: 'http://www.google.com/chrome/‎'
       },
       firefox: {
         text: 'Firefox 25+',
-        url: 'http://http://www.mozilla.org/'
+        url: 'http://www.mozilla.org/en-US/firefox/new/‎'
       },
       safari: {
         text: 'Safari 7+',
