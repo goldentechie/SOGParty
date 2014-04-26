@@ -1,7 +1,8 @@
+
 /***********
  * GLOBAL CONSTANTS
  ***********/
-var VERSION = "1.1.3 BETA";
+var VERSION = "1.1.4 BETA";
 
 var IS_MOBILE_OR_TABLET = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 var PREFERENCES = {}; //set when logging in
@@ -22,6 +23,8 @@ var FEE_FRACTION_PROVIDED_DEFAULT_PCT = 1    //1.00% of total order
 var ORDER_DEFAULT_EXPIRATION = 1000; //num blocks until expiration (at ~9 min per block this is ~6.75 days)
 var ORDER_BTCSELL_DEFAULT_EXPIRATION = 2000; //num blocks until expiration for selling BTC order
 var ORDER_MAX_EXPIRATION = 3000; //max expiration for order
+
+var STATS_MAX_NUM_TRANSACTIONS = 100; //max # transactions to show in the table
 
 var DEFAULT_NUM_ADDRESSES = 3; //default number of addresses to generate
 var MARKET_INFO_REFRESH_EVERY = 5 * 60 * 1000; //refresh market info every 5 minutes while enabled 
@@ -143,8 +146,9 @@ var BLOCKEXPLORER_URL = USE_TESTNET ? "http://test.bitcore.io" : "http://live.bi
 var GOOGLE_ANALYTICS_UAID = null; //will be set in counterwallet.js
 var ROLLBAR_ACCESS_TOKEN = null; //will be set in counterwallet.js
 
+//var NETWORK_VERSION = USE_TESTNET ? Bitcoin.network.testnet.pubKeyHash : Bitcoin.network.bitcoin.pubKeyHash;
+var NETWORK_VERSION = USE_TESTNET ? Bitcoin.network.testnet.addressVersion : Bitcoin.network.mainnet.addressVersion;
+
 var TRANSACTION_DELAY = 5000 // delay between transaction to avoid error -22 (vin reused)
 var TRANSACTION_MAX_RETRY = 5 // max retry when transaction failed (don't include first transaction, so 3 retry means 4 queries)
-
-var USE_OLD_BIP32 = true;
 

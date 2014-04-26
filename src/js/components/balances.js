@@ -126,7 +126,10 @@ function CreateNewAddressModalViewModel() {
     var newAddress = null;
 
     if(!self.forWatchOnly()) {
-      newAddress = WALLET.addAddress();
+      newAddress = WALLET.BITCOIN_WALLET.generateAddress();
+      var i = WALLET.BITCOIN_WALLET.addresses.length - 1;
+      var privkey = WALLET.BITCOIN_WALLET.getPrivateKey(i);
+      WALLET.addAddress(privkey);
     } else {
       newAddress = self.watchAddress();
       WALLET.addWatchOnlyAddress(newAddress);
@@ -310,8 +313,20 @@ var privateKeyValidator = function(required) {
   return {
     required: required,
     validation: {
-      validator: function (val, self) {       
-        return (new CWPrivateKey(val)).isValid();
+      validator: function (val, self) {
+        if (val=='') return false;
+        var key = null;
+        try {
+          key = BitcoinECKey(val); 
+        } catch(e) {
+          return false;
+        }       
+        /*$.jqlog.debug('adress:'+key.getAddress(NETWORK_VERSION));
+        $.jqlog.debug('compressed:'+key.compressed);
+        $.jqlog.debug('version:'+key.version);
+        $.jqlog.debug('priv:'+key.priv);*/
+
+        return key!=null && key.priv !== null && key.compressed !== null;
       },
       message: 'Not a valid' + (USE_TESTNET ? ' TESTNET ' : ' ') + 'private key.',
       params: self
@@ -344,7 +359,7 @@ function SweepModalViewModel() {
           var assetName = self.selectedAssetsToSweep()[i];
           var assetCost = self.sweepAssetsCost[assetName];
           sweepingCost += parseInt(assetCost);
-          //$.jqlog.debug('Cost for ' + assetName + " : "+assetCost);
+          $.jqlog.debug('Cost for ' + assetName + " : "+assetCost);
         }
         // output merging cost
         if (self.txoutsCountForPrivateKey > 1) {
@@ -352,10 +367,10 @@ function SweepModalViewModel() {
           // Transactions vary in size from about 0.2 kilobytes to over 1 kilobyte, but it's averaging half a kilobyte today.
           var mergeCost = Math.ceil(self.txoutsCountForPrivateKey / 2) * MIN_FEE;
           sweepingCost += parseInt(mergeCost); // if outputs merging needed
-          //$.jqlog.debug('Cost for output merging : ' + mergeCost);
+          $.jqlog.debug('Cost for output merging : ' + mergeCost);
         }
 
-        //$.jqlog.debug('Total sweeping cost : ' + sweepingCost);
+        $.jqlog.debug('Total sweeping cost : ' + sweepingCost);
 
         // here we assume that the transaction cost to send BTC from addressForFees is MIN_FEE
         var totalBtcBalanceForSweeep = self.btcBalanceForPrivateKey() + Math.max(0, (self.addressForFeesBalance()-MIN_FEE));
@@ -400,7 +415,9 @@ function SweepModalViewModel() {
   self.addressForPrivateKey = ko.computed(function() {
     if(!self.privateKeyValidated.isValid()) return null;
     //Get the address for this privatekey
-    return (new CWPrivateKey(self.privateKey())).getAddress();
+    var key = BitcoinECKey(self.privateKey());
+    assert(key.priv !== null && key.compressed !== null, "Private key not valid!"); //should have been checked already
+    return key.getAddress(NETWORK_VERSION).toString();
   }, self);
 
   self.addressForPrivateKeyForFees = ko.computed(function() {
@@ -410,7 +427,9 @@ function SweepModalViewModel() {
       return null;
     }
     //Get the address for this privatekey
-    return (new CWPrivateKey(self.privateKeyForFees())).getAddress();
+    var key = BitcoinECKey(self.privateKeyForFees());
+    assert(key.priv !== null && key.compressed !== null, "Private key not valid!"); //should have been checked already
+    return key.getAddress(NETWORK_VERSION).toString();
   }, self);
 
   self.btcBalanceForPrivateKey = ko.observable(0);
@@ -572,6 +591,32 @@ function SweepModalViewModel() {
       + ACTION_PENDING_NOTICE);
   }
   
+  self._signInputs = function(unsignedTxHex) {
+    var sendTx = Bitcoin.Transaction.deserialize(unsignedTxHex);
+    var txInHash = null, signature = null, SIGHASH_ALL = 1;
+    var key = new BitcoinECKey(self.privateKey());
+    for(var i = 0; i < sendTx.ins.length; i++) {
+      txInHash = txIn.hashTransactionForSignature(sendTx.ins[i].script, i, SIGHASH_ALL);
+      signature = key.sign(txInHash);
+      signature.push(parseInt(SIGHASH_ALL, 10));
+      sendTx.ins[i].script = Bitcoin.Script.createInputScript(signature, key.getPub());
+    }    
+  }
+
+  self.extractChangeTxoutValue = function(source, tx) {
+    $.jqlog.debug('extractChangeTxoutValue for '+source);
+    $.jqlog.debug(tx);
+    for (i = 0; i < tx.outs.length; i++) {
+        var txout = tx.outs[i];
+        txout.address.version = NETWORK_VERSION;
+        dest = txout.address.toString();
+        $.jqlog.debug('txout dest '+dest+'('+txout.value+')');
+        if (dest==source) {
+          return txout.value;
+        }
+    }
+    return 0;
+  }
 
   self.waitTxoutCountIncrease = function(callback) {
     setTimeout(function() {
@@ -589,9 +634,9 @@ function SweepModalViewModel() {
   }
 
   self.sendBtcForFees = function(callback) {
-    
-    var cwk = new CWPrivateKey(self.privateKeyForFees());
-    var pubkey = cwk.getPub();
+    var key = new BitcoinECKey(self.privateKeyForFees());
+    assert(key.priv !== null && key.compressed !== null, "Private key not valid!"); //should have been checked already
+    var pubkey = key.getPub().toHex();
     
     // if address has one ouptut, it will has two after this transaction..
     // ..so need output merging
@@ -619,9 +664,12 @@ function SweepModalViewModel() {
       self.waitTxoutCountIncrease(callback);    
     }
 
-    var onTransactionCreated = function(unsignedTxHex, numTotalEndpoints, numConsensusEndpoints) {    
-      var signedHex = cwk.checkAndSignRawTransaction(unsignedTxHex, self.addressForPrivateKey());
-      WALLET.broadcastSignedTx(signedHex, onTransactionBroadcasted, onBroadcastError);
+    var onTransactionCreated = function(unsignedTxHex, numTotalEndpoints, numConsensusEndpoints) {
+      var sendTx = Bitcoin.Transaction.deserialize(unsignedTxHex);
+      for (i = 0; i < sendTx.ins.length; i++) { //sign each input with the key
+        sendTx.sign(i, key);
+      }
+      WALLET.broadcastSignedTx(sendTx.serializeHex(), onTransactionBroadcasted, onBroadcastError);
     }
 
     var onTransactionError = function() {
@@ -705,8 +753,11 @@ function SweepModalViewModel() {
       }
 
       var onTransactionCreated = function(unsignedTxHex, numTotalEndpoints, numConsensusEndpoints) {
-        var signedHex = key.checkAndSignRawTransaction(unsignedTxHex, self.addressForPrivateKey());
-        WALLET.broadcastSignedTx(signedHex, onTransactionBroadcasted, onBroadcastError);
+        var sendTx = Bitcoin.Transaction.deserialize(unsignedTxHex);
+        for (i = 0; i < sendTx.ins.length; i++) { //sign each input with the key
+          sendTx.sign(i, key);
+        }
+        WALLET.broadcastSignedTx(sendTx.serializeHex(), onTransactionBroadcasted, onBroadcastError);
       }
 
       $.jqlog.debug("Create merge outputs transactions");
@@ -739,9 +790,11 @@ function SweepModalViewModel() {
     };
     multiAPIConsensus("create_issuance", transferData,
       function(unsignedTxHex, numTotalEndpoints, numConsensusEndpoints) {
-        
-        var signedHex = key.checkAndSignRawTransaction(unsignedTxHex, self.destAddress());
-        WALLET.broadcastSignedTx(signedHex, function(issuanceTxHash, endpoint) { //broadcast was successful
+        var sendTx = Bitcoin.Transaction.deserialize(unsignedTxHex);
+        for (i = 0; i < sendTx.ins.length; i++) { //sign each input with the key
+          sendTx.sign(i, key);
+        }
+        WALLET.broadcastSignedTx(sendTx.serializeHex(), function(issuanceTxHash, endpoint) { //broadcast was successful
           opsComplete.push({
             'type': 'transferOwnership',
             'result': true,
@@ -752,7 +805,7 @@ function SweepModalViewModel() {
           PENDING_ACTION_FEED.add(issuanceTxHash, "issuances", transferData);
 
           // here we adjust the BTC balance whith the change output
-          var newBtcBalance = CWBitcore.extractChangeTxoutValue(transferData.source, unsignedTxHex);
+          var newBtcBalance = self.extractChangeTxoutValue(transferData.source, sendTx);
           $.jqlog.debug("New BTC balance: "+newBtcBalance);
           self.btcBalanceForPrivateKey(newBtcBalance);
 
@@ -836,10 +889,12 @@ function SweepModalViewModel() {
     };
     multiAPIConsensus("create_send", sendData, //can send both BTC and counterparty assets
       function(unsignedTxHex, numTotalEndpoints, numConsensusEndpoints) {
-        
-        var signedHex = key.checkAndSignRawTransaction(unsignedTxHex, self.destAddress());
-
-        WALLET.broadcastSignedTx(signedHex, function(sendTxHash, endpoint) { //broadcast was successful
+        var sendTx = Bitcoin.Transaction.deserialize(unsignedTxHex);
+        $.jqlog.debug(sendTx);
+        for (i = 0; i < sendTx.ins.length; i++) { //sign each input with the key
+          sendTx.sign(i, key);
+        }
+        WALLET.broadcastSignedTx(sendTx.serializeHex(), function(sendTxHash, endpoint) { //broadcast was successful
           opsComplete.push({
             'type': 'send',
             'result': true,
@@ -853,7 +908,7 @@ function SweepModalViewModel() {
           
           // here we adjust the BTC balance whith the change output
           if (selectedAsset.ASSET != 'BTC') {
-            var newBtcBalance = CWBitcore.extractChangeTxoutValue(sendData.source, unsignedTxHex);
+            var newBtcBalance = self.extractChangeTxoutValue(sendData.source, sendTx);
             $.jqlog.debug("New BTC balance: " + newBtcBalance);
             self.btcBalanceForPrivateKey(newBtcBalance);
           }
@@ -913,10 +968,9 @@ function SweepModalViewModel() {
   }
   
   self.doAction = function() {
-
-    var cwk = new CWPrivateKey(self.privateKey());
-    var pubkey = cwk.getPub();
-
+    var key = new BitcoinECKey(self.privateKey());
+    assert(key.priv !== null && key.compressed !== null, "Private key not valid!"); //should have been checked already
+    var pubkey = key.getPub().toHex();
     var sendsToMake = [];
     var opsComplete = [];
     
@@ -926,12 +980,12 @@ function SweepModalViewModel() {
       if(selectedAsset == 'BTC') {
         hasBTC = i; //send BTC last so the sweep doesn't randomly eat our primed txouts for the other assets
       } else {
-        sendsToMake.push([selectedAsset, cwk, pubkey, opsComplete, null]);
+        sendsToMake.push([selectedAsset, key, pubkey, opsComplete, null]);
       }
     }
     if(hasBTC !== false) {
       //This balance is adjusted after each asset transfert with the change output.
-      sendsToMake.push(["BTC", cwk, pubkey, opsComplete, self.btcBalanceForPrivateKey()]);
+      sendsToMake.push(["BTC", key, pubkey, opsComplete, self.btcBalanceForPrivateKey()]);
     }
     
     var total = sendsToMake.length;
@@ -999,7 +1053,7 @@ function SweepModalViewModel() {
         doSweep();
       } else {
         // merge output then start sweeping.
-        self.mergeOutputs(cwk, pubkey, doSweep);
+        self.mergeOutputs(key, pubkey, doSweep);
       }
     }
 
@@ -1073,9 +1127,10 @@ function SignMessageModalViewModel() {
   self.doAction = function() {
     assert(self.validationModel.isValid(), "Cannot sign");
     var key = WALLET.getAddressObj(self.address()).KEY;
-    var format = self.signatureFormat() == 'base64' ? 'base64' : 'hex';
-    var signedMessage = key.signMessage(self.message(), format);
-    self.signedMessage(signedMessage);
+    var hexSignedMessage = Bitcoin.Message.sign(key, self.message());
+    $.jqlog.debug('hexSignedMessage: '+hexSignedMessage);
+    self.signedMessage(self.signatureFormat() == 'base64'
+      ? Bitcoin.convert.bytesToBase64(hexSignedMessage) : Bitcoin.convert.bytesToHex(hexSignedMessage));
     $("#signedMessage").effect("highlight", {}, 1500);
     //Keep the form up after signing, the user will manually press Close to close it...
   }
@@ -1204,8 +1259,7 @@ function DisplayPrivateKeyModalViewModel() {
   }
   
   self.displayPrivateKey = function() {
-    var wif = WALLET.getAddressObj(self.address()).KEY.getWIF();
-    self.privateKeyText(wif); 
+    self.privateKeyText(WALLET.getAddressObj(self.address()).KEY.toWif());
   }
 }
 
