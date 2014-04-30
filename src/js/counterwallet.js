@@ -1,6 +1,7 @@
 /***********
  * GLOBAL INITALIZATION
  ***********/
+function assert(condition, message) { if (!condition) throw message || "Assertion failed"; }
 
 //Set up logging (jqlog) and monkey patch jqlog with a debug function
 $.jqlog.enabled(true);
@@ -216,11 +217,11 @@ $(document).ready(function() {
     browserInfo: { // Settings for which browsers to display
       chrome: {
         text: 'Chrome 23+',
-        url: 'http://www.google.com/chrome/‎'
+        url: 'https://www.google.com/intl/en/chrome/browser/'
       },
       firefox: {
         text: 'Firefox 25+',
-        url: 'http://www.mozilla.org/en-US/firefox/new/‎'
+        url: 'http://http://www.mozilla.org/'
       },
       safari: {
         text: 'Safari 7+',
