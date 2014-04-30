@@ -19,10 +19,7 @@
     border-color: #A90329;
 }
 
-.smart-form input[readonly="readonly"], .smart-form input[disabled="disabled"] {
-    background: #eee;
-}
-.smart-form textarea[disabled="disabled"], .smart-form textarea[disabled="disabled"] {
+.smart-form input[readonly="readonly"] {
     background: #eee;
 }
 
