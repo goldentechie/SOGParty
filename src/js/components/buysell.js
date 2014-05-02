@@ -508,9 +508,7 @@ function BuySellWizardViewModel() {
     for(var i=0; i < addresses.length; i++) {
         assets = assets.concat(WALLET.getAddressObj(addresses[i]).getAssetsList());
     }
-    assets = arrayRemove(assets, 'XCP');
-    assets = arrayRemove(assets, 'BTC');
-    assets = arrayUnique(assets);
+    assets = assets.remove('XCP').remove('BTC').unique();
     self.myAssets(assets);
     
     self.buyAsset.subscribe(function(newValue) {
@@ -667,7 +665,7 @@ function BuySellWizardViewModel() {
              get_quantity: buyQuantity,
              get_asset: self.buyAsset(),
              _get_divisible: self.buyAssetIsDivisible(),
-             fee_required: self.buyAsset() == 'BTC' ? denormalizeQuantity(self.feeForSelectedBTCQuantity()) : 0,
+             fee_required: self.buyAsset() == 'BTC' ? denormalizeQuantity(self.feeForSelectedBTCQuantity()) : null,
              fee_provided: self.sellAsset() == 'BTC' ? denormalizeQuantity(self.feeForSelectedBTCQuantity()) : MIN_FEE,
              expiration: parseInt(self.numBlocksUntilExpiration())
             },
@@ -905,7 +903,6 @@ function BuySellWizardViewModel() {
   self._afterSelectedAnOpenOrder = ko.observable(false);
   self.buySelectedOpenOrder = function(order) {
     //called when a user clicks on an open order they would like to buy. should fill in the details for them on the buy page
-    
     self.overrideMarketPrice(true);
     self.customSellAs('unitprice');
     var unitPrice = self.deriveOpenOrderAssetPrice(
