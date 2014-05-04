@@ -68,7 +68,6 @@ function initBalances() {
   window.SIGN_MESSAGE_MODAL = new SignMessageModalViewModel();
   window.TESTNET_BURN_MODAL = new TestnetBurnModalViewModel();
   window.DISPLAY_PRIVATE_KEY_MODAL = new DisplayPrivateKeyModalViewModel();
-  window.BROADCAST_MODAL = new BroadcastModalViewModel();
   
   ko.applyBindings({}, document.getElementById("gettingStartedNotice"));
   ko.applyBindings({}, document.getElementById("pendingBTCPayNotice"));
@@ -79,7 +78,6 @@ function initBalances() {
   ko.applyBindings(SIGN_MESSAGE_MODAL, document.getElementById("signMessageModal"));
   ko.applyBindings(TESTNET_BURN_MODAL, document.getElementById("testnetBurnModal"));
   ko.applyBindings(DISPLAY_PRIVATE_KEY_MODAL, document.getElementById("displayPrivateKeyModal"));
-  ko.applyBindings(BROADCAST_MODAL, document.getElementById("broadcastModal"));
     
   //balances_assets.js
   window.CREATE_ASSET_MODAL = new CreateAssetModalViewModel();
@@ -110,19 +108,9 @@ function initBalances() {
         e.preventDefault(); //prevent the location hash from changing
       });
       
-      $('#sweepFunds, #sweepFunds2').click(function() {
-        SWEEP_MODAL.show(true, false);
+      $('#sweepFunds').click(function() {
+        SWEEP_MODAL.show();
       });
-      $('#sweepOldWallet').click(function() {
-        SWEEP_MODAL.show(true, true);
-      });
-
-      //temporary
-      if (WALLET.BITCOIN_WALLET.useOldBIP32) {
-        $('#newWalletSweep').hide();
-      } else {
-        $('#sweepFunds').hide();
-      }
         
       //Called on first load, and every switch back to the balances page
       if(window._BALANCES_HAS_LOADED_ALREADY === undefined) {

@@ -138,7 +138,7 @@ function _formulateEndpoints(endpoints, qs) {
 
 function _encodeForJSONRPCOverGET(params) {
   //This may be non-standard with JSON RPC 2.0...going off of http://www.jsonrpc.org/historical/json-rpc-over-http.html#get
-  return encodeURIComponent(bytesToBase64(stringToBytes(JSON.stringify(params))));
+  return encodeURIComponent(Bitcoin.convert.bytesToBase64(Bitcoin.convert.stringToBytes(JSON.stringify(params))));
 }
 
 function _makeJSONAPICall(destType, endpoints, method, params, timeout, onSuccess, onError, httpMethod) {
@@ -226,7 +226,7 @@ function _getDestTypeFromMethod(method) {
       'get_owned_assets', 'get_asset_history', 'get_asset_extended_info', 'get_transaction_stats', 'get_asset_pair_market_info',
       'get_market_price_summary', 'get_market_price_history', 'get_market_info', 'get_market_info_leaderboard', 'get_market_cap_history',
       'get_order_book_simple', 'get_order_book_buysell', 'get_trade_history',
-      'record_btc_open_order', 'cancel_btc_open_order', 'get_feeds'].indexOf(method) >= 0) {
+      'record_btc_open_order', 'cancel_btc_open_order'].indexOf(method) >= 0) {
     destType = "counterwalletd";
   }
   return destType;
