@@ -108,19 +108,9 @@ function initBalances() {
         e.preventDefault(); //prevent the location hash from changing
       });
       
-      $('#sweepFunds, #sweepFunds2').click(function() {
-        SWEEP_MODAL.show(true, false);
+      $('#sweepFunds').click(function() {
+        SWEEP_MODAL.show();
       });
-      $('#sweepOldWallet').click(function() {
-        SWEEP_MODAL.show(true, true);
-      });
-
-      //temporary
-      if (WALLET.BITCOIN_WALLET.useOldBIP32) {
-        $('#newWalletSweep').hide();
-      } else {
-        $('#sweepFunds').hide();
-      }
         
       //Called on first load, and every switch back to the balances page
       if(window._BALANCES_HAS_LOADED_ALREADY === undefined) {

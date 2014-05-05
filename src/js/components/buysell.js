@@ -434,13 +434,7 @@ function BuySellWizardViewModel() {
     //$.jqlog.debug("3.quantityLeft: " + quantityLeft);
 
     if(self.sellAsset() == 'BTC') { //include the fee if we're selling BTC
-      quantityLeft = Decimal.round(new Decimal(quantityLeft).sub(self.feeForSelectedBTCQuantity()), 8, Decimal.MidpointRounding.ToEven);
-      // Decimal.round(new Decimal(0).sub(0), 8) return undefined
-      // https://github.com/xnova/counterwallet/issues/39
-      if (String(quantityLeft) == "undefined") {
-        quantityLeft = new Decimal(0);
-      }
-      quantityLeft = quantityLeft.toFloat();
+      quantityLeft = Decimal.round(new Decimal(quantityLeft).sub(self.feeForSelectedBTCQuantity()), 8, Decimal.MidpointRounding.ToEven).toFloat();
     }
     
     return quantityLeft;
@@ -508,9 +502,7 @@ function BuySellWizardViewModel() {
     for(var i=0; i < addresses.length; i++) {
         assets = assets.concat(WALLET.getAddressObj(addresses[i]).getAssetsList());
     }
-    assets = arrayRemove(assets, 'XCP');
-    assets = arrayRemove(assets, 'BTC');
-    assets = arrayUnique(assets);
+    assets = assets.remove('XCP').remove('BTC').unique();
     self.myAssets(assets);
     
     self.buyAsset.subscribe(function(newValue) {
@@ -905,7 +897,6 @@ function BuySellWizardViewModel() {
   self._afterSelectedAnOpenOrder = ko.observable(false);
   self.buySelectedOpenOrder = function(order) {
     //called when a user clicks on an open order they would like to buy. should fill in the details for them on the buy page
-    
     self.overrideMarketPrice(true);
     self.customSellAs('unitprice');
     var unitPrice = self.deriveOpenOrderAssetPrice(
