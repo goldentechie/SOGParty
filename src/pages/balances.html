@@ -19,8 +19,27 @@
             </li>
         </ul>
     </div>
+
     <button id="sweepFunds" type="button" class="btn btn-primary">Import Funds</button>
+    <div class="btn-group" id="newWalletSweep">
+        <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+            Import Funds&nbsp;<i class="fa fa-caret-down"></i>
+        </button>
+        <ul class="dropdown-menu" style="right:0;left:auto">
+            <li>
+                <a id="sweepFunds2" href="#">From Another Address</a>
+            </li>
+            <li>
+                <a id="sweepOldWallet" href="#">From Old Wallet</a>
+            </li>
+        </ul>
+    </div>
   </div>
+</div>
+
+<div id="pendingBTCPayNotice" data-bind="fadeVisibleInOnly: WALLET.isOldWallet()" class="alert alert-danger alert-block">
+    <i class="fa-fw fa fa-btc"></i>
+    <strong>Old Wallet detected:</strong> We see you are using an old wallet. Please transfer your funds to a newly created wallet as soon as possible. Support for 'old' wallets will be discontinued June 1, 2014.
 </div>
 
 <div class="alert alert-warning">
@@ -52,6 +71,8 @@
     <strong>Sell BTC Pending:</strong> As you have one or more pending or open sell order for BTC, please stay logged in so that the order(s) can be properly filled.
 </div>
 
+ 
+
 <section id="widget-grid" class="balancesContainer" data-bind="foreach: addresses"> <!-- widget grid -->
     <div class="row"> <!-- one row per widget in this case -->
       <article class="col-xs-12 col-sm-12 col-md-12 col-lg-12"> <!-- widget START -->
@@ -71,6 +92,9 @@
                   <li class="divider"></li><li class="dropdown-header">Issuance...</li>                 
                   <li><a data-bind="visible: !IS_WATCH_ONLY, click: createAsset" href="#">Create Asset</a></li>                
                   <li><a data-bind="visible: !IS_WATCH_ONLY, click: payDividend" href="#">Pay Dividend</a></li>
+
+                  <li class="divider"></li><li class="dropdown-header">Betting...</li>  
+                  <li><a data-bind="visible: !IS_WATCH_ONLY, click: broadcast" href="#">Broadcast</a></li>
 
                   <li class="divider"></li><li class="dropdown-header">Sort by...</li>
                   <li><a data-bind="click: sortAssetsByName" href="#">Name</a></li>
@@ -266,16 +290,27 @@
         <p class="formPadded">Import funds by "sweeping" them from another external address you own into one of your wallet address.</p>
         
         <form class="smart-form" data-bind="submit: doAction, visible: sweepingProgressionMessage()==''"><fieldset>
-          <section><div class="row">
+          
+          <section data-bind="visible: !fromOldWallet"><div class="row">
             <label class="control-label col col-sm-12">Private Key To Import</label>
             <div class="col col-sm-12">
                 <label class="input"><i class="icon-append fa fa-lock"></i>
                     <input name="privateKey" data-bind="value: privateKey, valueUpdate: 'input', attr: {placeholder: 'Enter Bitcoin private key'}" type="text"/>
                 </label>
                 <span class="invalid" data-bind="validationMessage: privateKey"></span>
-                <div class="note">Enter the unencrypted private key that cooresponds to the address with the funds you want to move.</div>
+                <div class="note">Enter the unencrypted private key that coresponds to the address with the funds you want to move.</div>
             </div>
           </div></section>
+
+          <section data-bind="visible: fromOldWallet"><div class="row">
+            <label class="control-label col col-sm-12">Source Address from old Counterwallet</label>
+            <div class="col col-sm-12">
+                <select class="width-max" data-bind="options: availableOldAddresses, optionsValue: 'WIF', optionsText: 'ADDRESS', select2: { minimumResultsForSearch: 10, escapeMarkup: 'direct' }, value: oldPrivateKey"></select>
+                <span class="invalid" data-bind="validationMessage: privateKey"></span>
+                <div class="note">Select the address in your old wallet that the specified assets should be send from.</div>
+            </div>
+          </div></section>
+
           <section><div class="row">
             <label class="control-label col col-sm-12">Destination Address</label>
             <div class="col col-sm-12">
@@ -867,6 +902,71 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-bind="click: hide">Close</button>
+      </div>
+    </div><!-- /.modal-content -->
+  </div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+
+
+<!-- modal for broadcast -->
+<div data-bind="showModal: shown" id="broadcastModal" class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1" role="dialog" aria-labelledby="broadcastModal" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" data-bind="click: hide" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+        <h4 class="modal-title">Broadcast</h4>
+      </div>
+      <div class="modal-body no-padding">
+        <p class="formPadded">Use this form to broadcast data.</i><br/><br/>
+       <b class="errorRed">Please NOTE that this action is irreversable!</b></p>
+        <form class="smart-form" data-bind="submit: doAction"><fieldset>
+
+          <section><div class="row">
+            <label class="control-label col col-sm-2">Text</label>
+            <div class="col col-sm-10">
+                <label class="input"><i class="icon-append fa fa-tag"></i>
+                    <input name="textValue" data-bind="value: textValue, valueUpdate : 'input'" type="text"/>
+                </label>
+                <div class="note">The textual part of the broadcast (set to ‘LOCK’ to lock feed).</div>
+            </div>
+          </div></section>
+
+           <section><div class="row">                
+            <label class="control-label col col-sm-2">Value</label>
+            <div class="col col-sm-10">
+                <label class="input"><i class="icon-append fa fa-plus"></i>
+                    <input name="numericalValue" data-bind="value: numericalValue, valueUpdate : 'input'" type="text"/>
+                </label>
+                <div class="note">The numerical value of the broadcast.</div>
+            </div>
+          </div></section>
+
+          <section><div class="row">
+            <label class="control-label col col-sm-2">Fee fraction</label>
+            <div class="col col-sm-10">
+                <label class="input"><i class="icon-append fa fa-plus"></i>
+                    <input name="feeFraction" data-bind="value: feeFraction, valueUpdate : 'input'" type="text"/>
+                </label>
+                <div class="note">the fraction of bets on this feed that go to its operator.</div>
+            </div>
+          </div></section>
+
+          <section><div class="row">                
+            <label class="control-label col col-sm-2">Broadcast Date</label>
+            <div class="col col-sm-10">
+                <label class="input">
+                    <input name="broadcastTimestamp" type="text" data-bind="datetimepicker: broadcastDate"/>
+                </label>
+                <div class="note">The date and time of the broadcast.</div>
+            </div>
+          </div></section>
+
+        </fieldset></form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-bind="click: hide">Cancel</button>
+        <button type="button" data-bind="click: submitForm" class="btn btn-warning">Broadcast</button>
       </div>
     </div><!-- /.modal-content -->
   </div><!-- /.modal-dialog -->
