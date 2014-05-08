@@ -33,7 +33,7 @@ function WalletViewModel() {
     //see if there's a label already for this address that's stored in PREFERENCES, and use that if so
     var addressHash = hashToB64(address);
     //^ we store in prefs by a hash of the address so that the server data (if compromised) cannot reveal address associations
-    var label = PREFERENCES.address_aliases[addressHash] || "UNKNOWN LABEL";
+    var label = PREFERENCES.address_aliases[addressHash] || "My Address #" + (i+1);
     //^ an alias is made when a watch address is made, so this should always be found
 
     self.addresses.push(new AddressViewModel(key, address, label)); //add new
@@ -59,7 +59,7 @@ function WalletViewModel() {
     
     ko.utils.arrayForEach(self.addresses(), function(address) {
       if(withLabel) {
-        addresses.push([address.ADDRESS, address.label(), address.getXCPBalance(), address.PUBKEY]);
+        addresses.push([address.ADDRESS, address.label()]);
       } else {
         addresses.push(address.ADDRESS);
       }
@@ -82,12 +82,6 @@ function WalletViewModel() {
     var assetObj = addressObj.getAssetObj(asset);
     if(!assetObj) return 0; //asset not in wallet
     return normalized ? assetObj.normalizedBalance() : assetObj.rawBalance();
-  }
-
-  self.getPubkey = function(address) {
-    var addressObj = self.getAddressObj(address);
-    assert(addressObj);
-    return addressObj.PUBKEY;
   }
 
   self.updateBalance = function(address, asset, rawBalance) {
@@ -433,7 +427,7 @@ function WalletViewModel() {
       delete data['_divisible'];
     }
     
-    var verifyDestAddr = data['destination'] || data['transfer_destination'] || data['feed_address'] || data['source'];
+    var verifyDestAddr = data['destination'] || data['transfer_destination'] || data['source'];
     if (action == "create_burn") {
       verifyDestAddr = TESTNET_UNSPENDABLE;
     }
