@@ -425,8 +425,7 @@ function WalletViewModel() {
       delete data['_divisible'];
     }
     
-    var verifyDestAddr = data['destination'] || data['transfer_destination'] || data['destBtcPay'] || data['source'];
-    delete data['destBtcPay'];
+    var verifyDestAddr = data['destination'] || data['transfer_destination'] || data['source'];
     if (action == "create_burn") {
       verifyDestAddr = TESTNET_UNSPENDABLE;
     }
