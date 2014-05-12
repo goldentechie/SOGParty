@@ -49,6 +49,16 @@ function initIndex() { //main page
       } 
       return false;
     })
+    $.jqlog.debug('passphrase:');
+    $.jqlog.debug(TESTNET_PASSPHRASE);
+    if (TESTNET_PASSPHRASE && USE_TESTNET) {
+      $('#password').val(TESTNET_PASSPHRASE);
+      $('#password').change();
+      setTimeout(function() {
+        $('#loginform').submit();
+      }, 500);
+      
+    }
   });
 }
 initIndex(); //call it now, as this script is loaded on index page load
@@ -68,6 +78,7 @@ function initBalances() {
   window.SIGN_MESSAGE_MODAL = new SignMessageModalViewModel();
   window.TESTNET_BURN_MODAL = new TestnetBurnModalViewModel();
   window.DISPLAY_PRIVATE_KEY_MODAL = new DisplayPrivateKeyModalViewModel();
+  window.BROADCAST_MODAL = new BroadcastModalViewModel();
   
   ko.applyBindings({}, document.getElementById("gettingStartedNotice"));
   ko.applyBindings({}, document.getElementById("pendingBTCPayNotice"));
@@ -79,6 +90,7 @@ function initBalances() {
   ko.applyBindings(SIGN_MESSAGE_MODAL, document.getElementById("signMessageModal"));
   ko.applyBindings(TESTNET_BURN_MODAL, document.getElementById("testnetBurnModal"));
   ko.applyBindings(DISPLAY_PRIVATE_KEY_MODAL, document.getElementById("displayPrivateKeyModal"));
+  ko.applyBindings(BROADCAST_MODAL, document.getElementById("broadcastModal"));
     
   //balances_assets.js
   window.CREATE_ASSET_MODAL = new CreateAssetModalViewModel();
@@ -126,28 +138,23 @@ function initBalances() {
       //Called on first load, and every switch back to the balances page
       if(window._BALANCES_HAS_LOADED_ALREADY === undefined) {
         window._BALANCES_HAS_LOADED_ALREADY = true;
-        
-        function _detectOldWallet() {
-          //Prompt an old wallet user to migrate their funds
-          //Do this in another thread so that we don't delay the showing of the balances
-          WALLET.BITCOIN_WALLET.getOldAddressesInfos(function(data) {   
-            var needSweep = false;
-            for (var a in data) {
-              needSweep = true;
-              break;
-            }
-            if (needSweep) {
-              bootbox.confirm("<b style='color:red'>We detected that you have an 'old' wallet with funds present. Press 'OK' to sweep these funds into your new wallet, or Cancel to skip for now.</b>", function(value) {
-                if (value) {
-                  SWEEP_MODAL.show(true, true);
-                }
-              });
-            }
-          });
-        }
-        
-        //DISABLE this call for now, as it takes too long to complete and hangs the browser
-        //setTimeout(_detectOldWallet, 300);
+          
+        //Prompt an old wallet user to migrate their funds
+        /*WALLET.BITCOIN_WALLET.getOldAddressesInfos(function(data) {   
+          var needSweep = false;
+          for (var a in data) {
+            needSweep = true;
+            break;
+          }
+          if (needSweep) {
+            bootbox.confirm("<b style='color:red'>We detected that you have an 'old' wallet with funds present. Press 'OK' to sweep these funds into your new wallet, or Cancel to skip for now.</b>", function(value) {
+              if (value) {
+                SWEEP_MODAL.show(true, true);
+              }
+            });
+          }
+        });*/
+          
       } else {
         WALLET.refreshBTCBalances(false);
       }
@@ -294,3 +301,16 @@ function initPortfolio() {
   });
 }
 INIT_FUNC['pages/portfolio.html'] = initPortfolio;
+
+
+function initBetting() {
+  pageSetUp();
+  window.BETTING = new BettingViewModel();
+  window.BET_MODAL = new BetModalViewModel();
+
+  ko.applyBindings(BETTING, document.getElementById("betting"));
+  ko.applyBindings(BET_MODAL, document.getElementById("betModal"));
+
+  BETTING.init();  
+}
+INIT_FUNC['pages/betting.html'] = initBetting;
