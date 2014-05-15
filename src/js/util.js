@@ -63,6 +63,15 @@ arrayUnique = function(arr) { //modified from http://stackoverflow.com/a/9229821
     });
 }
 
+array1ContainsOneOfArray2 = function(arr1, arr2) {
+  for (var i in arr2) {
+    if (arr1.indexOf(arr2[i]) != -1) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /*if (typeof Array.prototype.contains != 'function') {
   Array.prototype.contains = function(element){
       return this.indexOf(element) > -1;
@@ -354,42 +363,6 @@ function deepCompare () {
   return true;
 }
 
-function capitaliseFirstLetter(string) {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
-
-function feedImageUrl(address) {
-  return "https://counterblock.jahpowerbit.org/_t_feed_img/"+address+".png";
-}
-
-function timestampToString(timestamp) {
-  return moment(timestamp * 1000).format("MMM Do YYYY, h:mm:ss a");
-}
-
-function satoshiToPercent(value) {
-  return (value / UNIT * 100) + '%';
-}
-
-function currency(amount, unit) {
-  return smartFormat(normalizeQuantity(amount), 4, 4) + ' ' + unit;
-}
-
-function satoshiToXCP(amount) {
-  return currency(amount, 'XCP');
-}
-
-function round(amount, decimals) {
-  return Math.ceil(amount * decimals * 100) / (decimals * 100);
-}
-
-// Reduce a fraction by finding the Greatest Common Divisor and dividing by it.
-function reduce(numerator,denominator){
-  var gcd = function gcd(a,b){
-    return b ? gcd(b, a%b) : a;
-  };
-  gcd = gcd(numerator,denominator);
-  return [numerator/gcd, denominator/gcd];
-}
 
 //Helper for closure-based inheritance (see http://www.ruzee.com/blog/2008/12/javascript-inheritance-via-prototypes-and-closures)
 (function(){
