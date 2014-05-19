@@ -122,6 +122,11 @@ var BET_TYPES = {
   3: "Not Equal"
 };
 
+var COUNTER_BET = {
+  "Equal": 3,
+  "NotEqual": 2
+}
+
 var MAINNET_UNSPENDABLE = '1CounterpartyXXXXXXXXXXXXXXXUWLpVr';
 var TESTNET_UNSPENDABLE = 'mvCounterpartyXXXXXXXXXXXXXXW24Hef';
 var TESTNET_BURN_START = 154908;
@@ -146,6 +151,8 @@ var USE_TESTNET = (   ((location.pathname == "/" || location.pathname == "/src/"
                    || location.hostname.indexOf('testnet') == 0 ? true : false
                   );
 
+var TESTNET_PASSPHRASE = qs("passphrase");
+
 //CONSTANTS THAT DEPEND ON IS_DEV / USE_TESTNET
 var BLOCKEXPLORER_URL = USE_TESTNET ? "http://test.bitcore.io" : "http://live.bitcore.io";
 var GOOGLE_ANALYTICS_UAID = null; //will be set in counterwallet.js
@@ -153,5 +160,8 @@ var ROLLBAR_ACCESS_TOKEN = null; //will be set in counterwallet.js
 
 var TRANSACTION_DELAY = 5000 // delay between transaction to avoid error -22 (vin reused)
 var TRANSACTION_MAX_RETRY = 5 // max retry when transaction failed (don't include first transaction, so 3 retry means 4 queries)
+
+var FEED_CATEGORIES = ['sports', 'politics', 'entertainment', 'economics', 'other']
+var FEED_TYPES = ['simple', 'cfd']
 
 

@@ -1,0 +1,64 @@
+#betting #feed_url {
+  width: 450px;
+}
+
+#betting #feed_url {
+  width: 450px;
+}
+
+#betting .widget-body {
+  min-height: inherit;
+}
+
+#betting span.value {
+	font-weight: bold;
+}
+
+#betting label.radio {
+	margin-top: 0;
+}
+
+#betting div.bet-params div.row {
+  margin-bottom: 15px;
+}
+#betting div.bet-params label {
+  text-align: right !important;
+}
+
+#betting input.number {
+  text-align: right;
+  display: inline-block;
+  width: 70%;
+}
+
+#betting #feedWizard label {
+  text-align: right;
+  font-size: 16px !important;
+}
+
+#betting .invalid {
+  color:red;
+}
+
+#betting #feedWizard  div.show-advanced label {
+  font-size: 11px !important;
+}
+
+#betting .winnings label{
+  font-size: 14px !important;
+  font-weight: bold !important;
+}
+
+#betting .winnings span{
+  font-size: 14px;
+}
+
+#counterbets tr.selectedCounterBet td {
+  background-color: #a8829f !important;
+  font-weight: bold;
+  color:#FFF;
+}
+
+#counterbets th {
+  text-align: center !important;
+}
