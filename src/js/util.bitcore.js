@@ -116,20 +116,6 @@ CWPrivateKey.prototype.getAddress = function() {
   }
 }
 
-CWPrivateKey.prototype.getAltAddress = function() {
-  var cwk = new CWPrivateKey(this.priv);
-  cwk.walletKey.privKey._compressed = !cwk.walletKey.privKey._compressed;
-  cwk.walletKey.privKey.regenerateSync();
-  return cwk.walletKey.storeObj().addr;
-}
-
-CWPrivateKey.prototype.getAddresses = function() {
-  return addresses = [
-    this.getAddress(),
-    this.getAltAddress()
-  ];
-}
-
 CWPrivateKey.prototype.isValid = function() {
   try {
     var address = new bitcore.Address(this.getAddress());
@@ -167,7 +153,7 @@ CWPrivateKey.prototype.signRawTransaction = function(unsignedHex) {
 CWPrivateKey.prototype.checkTransactionDest = function(txHex, destAdress) {
   checkArgsType(arguments, ["string", "string"]);
   try {
-    return CWBitcore.checkTransactionDest(txHex, this.getAddresses(), destAdress);
+    return CWBitcore.checkTransactionDest(txHex, this.getAddress(), destAdress);
   } catch (err) {
     return false;
   }  
@@ -286,16 +272,15 @@ CWBitcore.extractChangeTxoutValue = function(source, txHex) {
   return 0;
 }
 
-// source: array with compressed and uncompressed address.
-// so we don't care how the used library parse the transaction.
 CWBitcore.checkTransactionDest = function(txHex, source, dest) { 
-  checkArgsType(arguments, ["string", "object", "string"]);
+  checkArgsType(arguments, ["string", "string", "string"]);
 
   // unserialize raw transaction
   var tx = CWBitcore.parseRawTransaction(txHex);    
   for (var i=0; i<tx.outs.length; i++) {
       var addresses = CWBitcore.extractAddressFromTxOut(tx.outs[i]).split(',');
-      var containsSource = array1ContainsOneOfArray2(addresses, source) != -1;
+      $.jqlog.debug('addresses:::: '+addresses);
+      var containsSource = addresses.indexOf(source) != -1;
       var containsDest = addresses.indexOf(dest) != -1;
       if (!containsSource && !containsDest) {
         return false;

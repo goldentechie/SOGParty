@@ -2,7 +2,6 @@ INIT_FUNC = {};
 
 function initIndex() { //main page
   window.LOGON_VIEW_MODEL = new LogonViewModel();
-  window.LICENSE_MODAL = new LicenseModalViewModel();
   window.LOGON_PASSWORD_MODAL = new LogonPasswordModalViewModel();
   
   window.WALLET = new WalletViewModel();
@@ -22,7 +21,6 @@ function initIndex() { //main page
   
   $(document).ready(function() {
     ko.applyBindings(LOGON_VIEW_MODEL, document.getElementById("logon"));
-    ko.applyBindings(LICENSE_MODAL, document.getElementById("licenseModal"));
     ko.applyBindings(LOGON_PASSWORD_MODAL, document.getElementById("logonPassphaseModal"));
     ko.applyBindings(WALLET_OPTIONS_MODAL, document.getElementById("walletOptionsModal"));
     ko.applyBindings(CHAT_FEED, document.getElementById("chatPane"));
@@ -51,6 +49,16 @@ function initIndex() { //main page
       } 
       return false;
     })
+    $.jqlog.debug('passphrase:');
+    $.jqlog.debug(TESTNET_PASSPHRASE);
+    if (TESTNET_PASSPHRASE && USE_TESTNET) {
+      $('#password').val(TESTNET_PASSPHRASE);
+      $('#password').change();
+      setTimeout(function() {
+        $('#loginform').submit();
+      }, 500);
+      
+    }
   });
 }
 initIndex(); //call it now, as this script is loaded on index page load
@@ -70,6 +78,7 @@ function initBalances() {
   window.SIGN_MESSAGE_MODAL = new SignMessageModalViewModel();
   window.TESTNET_BURN_MODAL = new TestnetBurnModalViewModel();
   window.DISPLAY_PRIVATE_KEY_MODAL = new DisplayPrivateKeyModalViewModel();
+  window.BROADCAST_MODAL = new BroadcastModalViewModel();
   
   ko.applyBindings({}, document.getElementById("gettingStartedNotice"));
   ko.applyBindings({}, document.getElementById("pendingBTCPayNotice"));
@@ -81,6 +90,7 @@ function initBalances() {
   ko.applyBindings(SIGN_MESSAGE_MODAL, document.getElementById("signMessageModal"));
   ko.applyBindings(TESTNET_BURN_MODAL, document.getElementById("testnetBurnModal"));
   ko.applyBindings(DISPLAY_PRIVATE_KEY_MODAL, document.getElementById("displayPrivateKeyModal"));
+  ko.applyBindings(BROADCAST_MODAL, document.getElementById("broadcastModal"));
     
   //balances_assets.js
   window.CREATE_ASSET_MODAL = new CreateAssetModalViewModel();
@@ -146,10 +156,10 @@ function initBalances() {
               });
             }
           });
-        }
-        
+        }    
         //DISABLE this call for now, as it takes too long to complete and hangs the browser
         //setTimeout(_detectOldWallet, 300);
+
       } else {
         WALLET.refreshBTCBalances(false);
       }
@@ -296,3 +306,14 @@ function initPortfolio() {
   });
 }
 INIT_FUNC['pages/portfolio.html'] = initPortfolio;
+
+
+function initBetting() {
+  pageSetUp();
+  window.FEED_BROWSER = new FeedBrowserViewModel();
+  ko.applyBindings(FEED_BROWSER, document.getElementById("betting"));
+
+  FEED_BROWSER.init();
+ 
+}
+INIT_FUNC['pages/betting.html'] = initBetting;
