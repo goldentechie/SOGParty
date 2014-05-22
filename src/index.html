@@ -33,6 +33,7 @@
     <link rel="stylesheet" type="text/css" media="screen" href="css/components/chatfeed.css">
     <link rel="stylesheet" type="text/css" media="screen" href="css/components/balances.css">
     <link rel="stylesheet" type="text/css" media="screen" href="css/components/buysell.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="css/components/betting.css">
     <!-- endbuild -->
 
     <!-- FAVICONS -->
@@ -155,6 +156,9 @@
             <a href="pages/view_prices.html"><i class="fa fa-lg fa-fw fa-bar-chart-o"></i> <span class="menu-item-parent">View Prices</span></a>
           </li>
           <li class="">
+            <a href="pages/betting.html"><i class="glyphicon fa-lg fa-fw glyphicon-share-alt"></i> <span class="menu-item-parent">Binary Bets</span></a>
+          </li>
+          <li class="">
             <a href="pages/portfolio.html"><i class="fa fa-lg fa-fw fa-tasks"></i> <span class="menu-item-parent">My Portfolio</span></a>
           </li>
           <li class="">
@@ -211,7 +215,7 @@
 
     <!-- Logged out cover div -->
     <div id="logon">
-      <h1>Welcome to Counterwallet</h1>
+      <h1>Welcome to Counterwallet<span data-bind="visible: USE_TESTNET">&nbsp;Testnet</span></h1>
       <h2>Powered by Counterparty</h2>
       <div id="form-well">
         <div id="createNewAcctBtnPane" data-bind="visible: generatedPassphrase().length == 0">
@@ -251,7 +255,7 @@
         <div class="panel panel-info">
           <div class="panel-heading">
             <h3 class="panel-title">
-              <b>Log Into Your Wallet</b>
+              <b>Log Into Your <span data-bind="visible: USE_TESTNET">Testnet&nbsp;</span>Wallet</b>
               <span data-bind="fadeVisibleInOnly: IS_DEV" class="label label-warning pull-right margin-left-5 padding-5 display-none"><i class="fa-fw fa fa-warning"></i>&nbsp;Dev Mode Enabled</span>
               <span data-bind="fadeVisibleInOnly: USE_TESTNET" class="label label-info pull-right margin-left-5 padding-5 display-none"><i class="fa-fw fa fa-info"></i>&nbsp;Testnet In Use</span>
             </h3>
@@ -278,7 +282,7 @@
        <div id="extra-info" class="container" data-bind="visible: generatedPassphrase().length === 0">
         <h3 class="sales-title margin-bottom-10">
           Counterwallet is a web-wallet for <a href="http://www.counterparty.co" target="_blank">Counterparty</a>,
-          the world’s first protocol for decenralized financial tools.
+          the world’s first protocol for decentralized financial tools.
         </h3>
         <h4 class="sales-title">
           All transactions made with Counterwallet use an automatic escrow system to keep them secure, with no middleman required.
@@ -617,6 +621,7 @@
     <script src="js/components/leaderboard.js"></script>
     <script src="js/components/portfolio.js"></script>
     <script src="js/components/stats.js"></script>
+    <script src="js/components/betting.js"></script>
 
     <script src="js/smartadmin.app.js"></script> <!-- custom app.js -->
     <!-- ^ unfortunately we have to mod the file itself, instead of dynamically override o_O -->
