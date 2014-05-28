@@ -133,7 +133,7 @@ function initBalances() {
       });
 
       //temporary
-      if (WALLET.BITCOIN_WALLET.useOldBIP32) {
+      if (WALLET.BITCOIN_WALLET.useOldHierarchicalKey) {
         $('#newWalletSweep').hide();
       } else {
         $('#sweepFunds').hide();
@@ -264,7 +264,7 @@ function initLeaderboard() {
   //This code is run on each visit to the page
   window.ASSET_LEADERBOARD = new AssetLeaderboardViewModel();
   
-  ko.applyBindings(ASSET_LEADERBOARD, document.getElementById("leaderboardMarketBar"));
+  ko.applyBindings(ASSET_LEADERBOARD, document.getElementById("leaderboardButtonBar"));
   ko.applyBindings(ASSET_LEADERBOARD, document.getElementsByClassName("leaderboardGrid")[0]);
   
   ASSET_LEADERBOARD.init();
@@ -299,9 +299,9 @@ function initPortfolio() {
   pageSetUp(); //init smartadmin featureset
   
   //This code is run on each visit to the page
-  window.ASSET_PORTFOLIO = new AssetPortfolioViewModel();
+  window.ASSET_PORTFOLIO = new AssetPortfolioViewModel("Test");
   
-  ko.applyBindings(ASSET_PORTFOLIO, document.getElementById("portfolioMarketBar"));
+  ko.applyBindings(ASSET_PORTFOLIO, document.getElementById("portfolioButtonBar"));
   ko.applyBindings(ASSET_PORTFOLIO, document.getElementsByClassName("portfolioGrid")[0]);
   
   $(window).bind("resize", ASSET_PORTFOLIO.dataTableResponsive);
