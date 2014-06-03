@@ -1,7 +1,7 @@
 /***********
  * GLOBAL CONSTANTS
  ***********/
-var VERSION = "1.1.5 BETA";
+var VERSION = "1.2.0 BETA";
 
 var IS_MOBILE_OR_TABLET = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 var PREFERENCES = {}; //set when logging in
@@ -125,9 +125,7 @@ var BET_TYPES = {
 
 var COUNTER_BET = {
   "Equal": 3,
-  "NotEqual": 2,
-  "BullCFD": 1,
-  "BearCFD": 0
+  "NotEqual": 2
 }
 
 var BET_MATCHES_STATUS = {
@@ -136,8 +134,6 @@ var BET_MATCHES_STATUS = {
   "settled: for equal": 2,
   "settled: for notequal": 3
 }
-
-var LEVERAGE_UNIT = 5040;
 
 var MAINNET_UNSPENDABLE = '1CounterpartyXXXXXXXXXXXXXXXUWLpVr';
 var TESTNET_UNSPENDABLE = 'mvCounterpartyXXXXXXXXXXXXXXW24Hef';
