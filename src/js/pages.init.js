@@ -1,5 +1,4 @@
 INIT_FUNC = {};
-PROCESSED_BTCPAY = {};
 
 function initIndex() { //main page
   window.LOGON_VIEW_MODEL = new LogonViewModel();
@@ -145,6 +144,10 @@ function initBalances() {
       } else {
         $('#sweepFunds').hide();
       }
+      $('#support_havingIssuesLink').click(function(e) {
+        SUPPORT_MODAL.show();
+        return false;
+      });
         
       //Called on first load, and every switch back to the balances page
       if(window._BALANCES_HAS_LOADED_ALREADY === undefined) {
