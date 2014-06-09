@@ -87,11 +87,7 @@ function LogonViewModel() {
       CHAT_FEED.init();
       
       //Grab preferences
-      multiAPINewest("get_preferences", 
-        {'wallet_id': WALLET.identifier(),
-         'network': USE_TESTNET ? 'testnet' : 'mainnet',
-         'for_login': true
-        }, 'last_updated', function(data) {
+      multiAPINewest("get_preferences", [WALLET.identifier()], 'last_updated', function(data) {
         var mustSavePreferencesToServer = false;
         
         if(data) { //user stored preferences located successfully
@@ -200,13 +196,7 @@ function LogonViewModel() {
     //store the preferences on the server(s) for future use
     if(mustSavePreferencesToServer) {
       $.jqlog.info("Preferences updated/generated during login. Updating on server(s)...");
-      multiAPI("store_preferences",
-        {'wallet_id': WALLET.identifier(),
-         'preferences': PREFERENCES,
-         'network': USE_TESTNET ? 'testnet' : 'mainnet',
-         'for_login': true,
-         'referer': ORIG_REFERER
-        });
+      multiAPI("store_preferences", [WALLET.identifier(), PREFERENCES]);
     }
     
     //Update the wallet balances (isAtLogon = true)

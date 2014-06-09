@@ -1,25 +1,6 @@
-### v1.2.1 ###
-**Enhancements:**
-* Added wallet-level statistics and logging of wallet logins
-
-**Fixes:**
-* Broadcast feeds with enhanced feed info with a protocol prefix now are seen properly
-
-
-### v1.2.0 ###
-**Enhancements:**
-* Added in binary option and CFD functionality
-* Simplified menu layout
-
-**Fixes:**
-* numerous minor fixes
-
-### v1.1.6 ###
+### v1.1.6 (unreleased) ###
 **Enhancements:**
 * Phrasing change: Dividends -> Distributions, Asset -> Token
-
-**Fixes:**
-* numerous minor fixes
 
 ### v1.1.5 ###
 **Enhancements:**
