@@ -91,14 +91,11 @@ function ChatFeedViewModel() {
     //If total numbers of servers in the backends list > # servers the client connects to, this will no longer be the case
     failoverAPI("get_num_users_online", [], function(numUsersOnline, endpoint) {
       self.numUsersOnline(numUsersOnline);
-      $("div.openChatPane").show();
     });
   }
   
   self._showChatWindow = function() {
-
-    $('#chatPane').append($("div.openChatPane"));
-    $("div.openChatPane").html('▲')
+    $('#chatLink span').text("Hide Chat");
   
     // TODO: improve to really synchronize two animations (queue=false don't work well)
     // TODO: remove margin on windows resize
@@ -117,10 +114,8 @@ function ChatFeedViewModel() {
   
   self._hideChatWindow = function() {
     //Collapse chat window
-    $('#main').animate({marginRight : "0px"}, {duration: 600, queue: false, complete: function() {
-      $('body').append($("div.openChatPane"));
-      $("div.openChatPane").html('CHAT')
-    }});
+    $('#chatLink span').text("Show Chat");
+    $('#main').animate({marginRight : "0px"}, {duration: 600, queue: false});
     $('#chatPane').hide('slide', {direction:'right', queue: false}, 600);
   }
   
@@ -504,11 +499,11 @@ function ChatSetHandleModalViewModel() {
   first load and subsequent ajax page switches in the .html <script> tag*/
 
 $(document).ready(function() {
-  //Set up link on the side bar to show/hide chat box  
-  $('div.openChatPane').click(function() {
+  //Set up link on the side bar to show/hide chat box
+  $('#chatLink').click(function() {
     $('#chatPane').is(':hidden') ? CHAT_FEED.showChat() : CHAT_FEED.hideChat(); 
   });
-
+  
   $("#chatTextBox").keydown(function(e) { 
     if (e.keyCode == 9) { //prevent tab from switching focus
       e.preventDefault(); 

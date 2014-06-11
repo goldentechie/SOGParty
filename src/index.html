@@ -137,10 +137,7 @@
         <span id="noticeDevMode" data-bind="visible: IS_DEV" class="label label-warning pull-right modeIndicator"><i class="fa-fw fa fa-warning"></i>&nbsp;Dev Mode Enabled</span>
         <span id="noticeTestnet" data-bind="visible: USE_TESTNET" class="label label-info pull-right modeIndicator"><i class="fa-fw fa fa-info"></i>&nbsp;Testnet In Use</span>
 
-        <span id="donate" class="pull-right">
-          <a href="#" class="btn btn-primary ">DONATE</a>
-        </span>
-        
+
       </div> <!-- end pulled right: nav area -->
     </header> <!-- END HEADER -->
 
@@ -173,6 +170,9 @@
           <li class="">
             <a href="pages/history.html"><i class="fa fa-lg fa-fw fa-book"></i> <span class="menu-item-parent">History</span></a>
           </li>
+          <li>
+            <a href="#" id="chatLink"><i class="fa fa-lg fa-fw fa-comments-o"></i><span class="menu-item-parent">Show Chat</span></a>
+          </li>
           <li class="">
             <a href="#"><i class="fa fa-lg fa-fw fa-plus"></i> <span class="menu-item-parent">More</span></a>
             <ul>
@@ -199,7 +199,7 @@
       <!-- END MAIN CONTENT -->
     </div>
     <!-- END MAIN PANEL -->
-    <div class="openChatPane">CHAT</div>
+
     <div id="chatPane" style="display: none">
       <h2 data-bind="html: headerText"></h2>
       <div class="chatOnlineCount"><span data-bind="text: numUsersOnline"></span> Users Online</div>
