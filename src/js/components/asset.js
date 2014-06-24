@@ -112,11 +112,12 @@ function AssetViewModel(props) {
                 quantity: 0,
                 asset: self.ASSET,
                 divisible: self.DIVISIBLE,
-                description: 'LOCK',
+                description: self.description(),
+                lock: true,
                 callable_: self.CALLABLE,
                 call_date: self.CALLDATE,
                 call_price: self.CALLPRICE,
-                destination: null
+                transfer_destination: null
               },
               function(txHash, data, endpoint) {
                 bootbox.alert("Your token has been locked and no more units of the token may be issued. " + ACTION_PENDING_NOTICE);

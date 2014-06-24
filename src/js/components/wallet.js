@@ -64,22 +64,6 @@ function WalletViewModel() {
     });
     return addresses;
   }
-
-  self.getBiggestXCPBalanceAddress = function() {
-    var maxAmount = 0;
-    var maxAddress = null;
-
-    ko.utils.arrayForEach(self.addresses(), function(address) {
-      var xcpBalance = address.getXCPBalance();
-      if (xcpBalance>maxAmount) {
-        maxAmount = xcpBalance;
-        maxAddress = address;
-      }
-    });
-
-    return maxAddress;
-
-  }
   
   self.getAddressObj = function(address) {
     //given an address string, return a reference to the cooresponding AddressViewModel object
@@ -346,7 +330,7 @@ function WalletViewModel() {
     //We used to have a retrieveBTCBalances function for getting balance of multiple addresses, but scrapped it
     // since it worked in serial, and one address with a lot of txns could hold up the balance retrieval of every
     // other address behind it
-    failoverAPI("get_chain_address_info", {"addresses": [address], "with_uxtos": false, "with_last_txn_hashes": 0},
+    failoverAPI("get_btc_address_info", {"addresses": [address], "with_uxtos": false, "with_last_txn_hashes": 0},
       function(data, endpoint) {
         return onSuccess(
           parseInt(data[0]['info']['balanceSat'] || 0), //confirmed BTC balance
@@ -362,7 +346,7 @@ function WalletViewModel() {
       onError = function(jqXHR, textStatus, errorThrown) { return defaultErrorHandler(jqXHR, textStatus, errorThrown); };
     assert(onSuccess, "onSuccess callback must be defined");
     
-    failoverAPI("get_chain_address_info", {"addresses": addresses, "with_uxtos": true, "with_last_txn_hashes": 5, "with_block_height": true},
+    failoverAPI("get_btc_address_info", {"addresses": addresses, "with_uxtos": true, "with_last_txn_hashes": 5, "with_block_height": true},
       function(data, endpoint) {
         var numSuitableUnspentTxouts = null;
         var numPrimedTxoutsIncl0Confirms = null;
@@ -462,7 +446,6 @@ function WalletViewModel() {
         WALLET.signAndBroadcastTx(address, unsignedTxHex, function(txHash, endpoint) {
           //register this as a pending transaction
           var category = action.replace('create_', '') + 's'; //hack
-          if (category == 'rpss') category = 'rps';
           if(data['source'] === undefined) data['source'] = address;
           if(action == 'create_order') {
             data['_give_divisible'] = extra1;

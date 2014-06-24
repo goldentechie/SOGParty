@@ -1314,7 +1314,8 @@ function checkURL() {
 
 }
 
-function loadPage(url, container) {
+//COUNTERWALLET: START MOD
+function loadURL(url, container) {
   $.ajax({
     type : "GET",
     url : url,
@@ -1345,41 +1346,6 @@ function loadPage(url, container) {
     },
     async : false
   });
-}
-
-//COUNTERWALLET: START MOD
-function loadURL(url, container) {
-  if (LIMITED_FEATURES && (RESTRICTED_AREA.indexOf(url) != -1)) {
-    
-    var message = 'It appears that you are located in a country in which we are legally unable to provide services. <br> If you are using <b>Tor Browser</b> from a country in which the use of this website is allowed, please press the blue "New Identity" button and this problem will be solved immediately.'
-
-    bootbox.dialog({
-      title: "Country warning",
-      message: message,
-      buttons: {
-        "cancel": {
-          label: "Cancel",
-          className: "btn-danger",
-          callback: function() {
-            bootbox.hideAll();
-            return false;
-          }
-        },
-        "continue": {
-          label: "New Identity",
-          className: "btn-primary",
-          callback: function() {
-            LIMITED_FEATURES = false;
-            loadPage(url, container);
-          }
-        }
-      }
-    });
-
-  } else {
-    loadPage(url, container);
-  }
-  
 }
 //COUNTERWALLET: END MOD
 

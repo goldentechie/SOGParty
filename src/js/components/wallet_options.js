@@ -24,7 +24,6 @@ function WalletOptionsModalViewModel() {
   self.infoTableShown = ko.observable(false);
   self.myIPAddr = ko.observable('');
   self.myCookie = ko.observable('');
-  self.myCountry = ko.observable('');
   
   self.dispMyCookiePresent = ko.computed(function() {
     return self.myCookie() ? 'Present' : 'None';
@@ -77,20 +76,13 @@ function WalletOptionsModalViewModel() {
     $('#themeSelector').select2("val", self.selectedTheme());
     $('#langSelector').select2("val", self.selectedLang());
 
-    self.getReflectedHostInfo();
+    failoverAPI("get_reflected_host_info", [], function(data, endpoint) {
+      self.myIPAddr(data['ip']);
+      self.myCookie(data['cookie']);
+    });
     
     self.shown(true);
   }  
-
-  self.getReflectedHostInfo = function() {
-    failoverAPI("get_reflected_host_info", [], function(data, endpoint) {
-      $.jqlog.debug(data);
-
-      self.myIPAddr(data['ip']);
-      self.myCookie(data['cookie']);
-      self.myCountry(data['country']);
-    });
-  }
 
   self.showInfoTable = function() {
     self.infoTableShown(true);

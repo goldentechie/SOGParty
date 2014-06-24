@@ -71,9 +71,7 @@ var ENTITY_NAMES = {
   'bet_expirations': 'Bet Expired',
   'order_expirations': 'Order Expired',
   'bet_match_expirations': 'Bet Match Exp',
-  'order_match_expirations': 'Order Match Exp',
-  'rps': 'Rock-Paper-Scissors',
-  'rps_matches': 'Rock-Paper-Scissors Match'
+  'order_match_expirations': 'Order Match Exp'
 };
 
 var ENTITY_ICONS = {
@@ -132,13 +130,6 @@ var BET_TYPES_SHORT = {
   3: "NotEqual"
 }
 
-var BET_TYPES_ID = {
-  "BullCFD": 0,
-  "BearCFD": 1,
-  "Equal": 2,
-  "NotEqual": 3
-}
-
 var COUNTER_BET = {
   "Equal": 3,
   "NotEqual": 2,
@@ -195,5 +186,3 @@ var FEED_CATEGORIES = ['sports', 'politics', 'entertainment', 'economics', 'othe
 var FEED_TYPES = ['simple', 'cfd']
 
 var DONATION_ADDRESS = USE_TESTNET ? 'n4MGGJBkW9RjRKBbZfBAceHDndhywvVPV9' : '19U6MmLLumsqxXSBMB5FgYXbezgXYC6Gpe';
-
-var LIMITED_COUNTRIES = ['US'];

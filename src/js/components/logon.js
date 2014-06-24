@@ -83,14 +83,6 @@ function LogonViewModel() {
       MESSAGE_FEED.init(data['last_message_index']);
       //^ set the "starting" message_index, under which we will ignore if received on the messages feed
 
-      // set user country
-      USER_COUNTRY = data['country'];
-      $.jqlog.debug('USER_COUNTRY: '+USER_COUNTRY);
-      if (LIMITED_COUNTRIES.indexOf(USER_COUNTRY) != -1) {
-        LIMITED_FEATURES = true;
-      }
-      $.jqlog.debug('LIMITED_FEATURES: '+LIMITED_FEATURES);
-
       multiAPI("is_wallet_online", [WALLET.identifier()], self.onIsWalletOnline);
 
     },
@@ -256,7 +248,7 @@ function LogonViewModel() {
       // feed to determine whether a btcpay process is in progress (pending) or not
       WAITING_BTCPAY_FEED.restore();   
     });
-    MESSAGE_FEED.restoreOrder();
+    OPEN_ORDER_FEED.restore();
     
 
     //all done. load the balances screen

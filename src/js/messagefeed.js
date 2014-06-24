@@ -4,57 +4,6 @@ function MessageFeed() {
   self.lastMessageIndexReceived = ko.observable(0); //last message received from the message feed (socket.io) -- used to detect gaps
   self.failoverCurrentIndex = ko.observable(0); //last idx in the cwBaseURLs tried (used for socket.io failover)
   self.MESSAGE_QUEUE = [];
-  self.OPEN_ORDERS = []; // here only for sellBTCOrdersCount
-  self.OPEN_RPS = {};
-
-  self.sellBTCOrdersCount = ko.computed(function() {
-    return $.map(self.OPEN_ORDERS, function(item) {       
-        return ('BTC' == item['get_asset']) ? item : null;
-    }).length;
-  }, self);
-
-  self.removeOrder = function(hash) {
-    for (var i in self.OPEN_ORDERS) {
-      if (self.OPEN_ORDERS[i]['tx_hash'] == hash) {
-        self.OPEN_ORDERS = self.OPEN_ORDERS.splice(i, 1);
-      }
-    }
-  }
-
-  self.restoreOrder = function() {
-    //Get and populate any open orders we have
-    var addresses = WALLET.getAddressesList();
-    var filters = {'field': 'source', 'op': 'IN', 'value': addresses};
-    failoverAPI("get_orders", {'filters': filters, 'show_expired': false, 'filterop': 'or'},
-      function(data, endpoint) {
-        //if the order is for BTC and the qty remaining on either side is negative (but not on BOTH sides,
-        // as it would be fully satified then and canceling would be pointless), auto cancel the order
-        //BUG: logging back in and out again before this txn is confirmed will create a second cancellation request here (which will be rejected, but still)
-        //TODO: maybe look at pending operations to make sure that we don't reissue a cancel call that is currently pending
-        var openBTCOrdersToCancel = $.grep(data, function(e) {
-          return    e['status'] == 'open'
-                 && (e['get_asset'] == 'BTC' || e['give_asset'] == 'BTC')
-                 && (e['get_remaining'] <= 0 || e['give_remaining'] <= 0)
-                 && !(e['get_remaining'] <= 0 && e['give_remaining'] <= 0);
-        });
-        for(i=0; i < openBTCOrdersToCancel.length; i++) {
-          $.jqlog.debug("Auto cancelling BTC order " + openBTCOrdersToCancel[i]['tx_hash']
-            + " as the give_remaining and/or get_remaining <= 0 ...");
-          WALLET.doTransaction(openBTCOrdersToCancel[i]['source'], "create_cancel", {
-            offer_hash: openBTCOrdersToCancel[i]['tx_hash'],
-            source: openBTCOrdersToCancel[i]['source'],
-            _type: 'order',
-            _tx_index: openBTCOrdersToCancel[i]['tx_index']
-          });
-        }
-        
-        //do not show empty/filled orders, including open BTC orders that have 0/neg give/get remaining (as we auto
-        // cancelled them above or they are fully satisfied and do not need to be shown, or need cancellation)
-        self.OPEN_ORDERS = $.grep(data, function(e) { return e['status'] == 'open' && e['get_remaining'] > 0 && e['give_remaining'] > 0; });
-      }
-    );
-  }
-  
   
   self.tryNextSIOMessageFeed = function() {
     if(self.failoverCurrentIndex() + 1 == cwBaseURLs().length) {
@@ -262,7 +211,6 @@ function MessageFeed() {
       || message['_status'].startsWith('cancelled') //orders and bets
       || message['_status'].startsWith('completed') //order match (non-BTC, or BTC match where BTCPay has been made)
       || message['_status'].startsWith('expired'));
-
     if(message['_status'].startsWith('invalid'))
       return; //ignore message
     if(message['_status'] == 'expired') {
@@ -301,15 +249,14 @@ function MessageFeed() {
       //^ covers the case where make a BTC payment and log out before it is confirmed, then log back in and see it confirmed
     } else if(category == "burns") {
     } else if(category == "cancels") {
-      
       if(WALLET.getAddressObj(message['source'])) {
         //Remove the canceled order from the open orders list
         // NOTE: this does not apply as a pending action because in order for us to issue a cancellation,
         // it would need to be confirmed on the blockchain in the first place
-        self.removeOrder(message['offer_hash']);
+        OPEN_ORDER_FEED.remove(message['offer_hash']);
+    
         //TODO: If for a bet, do nothing for now.
       }
-
     } else if(category == "callbacks") {
       //assets that are totally called back will be removed automatically when their
       // balance goes to zero, via the credit and debit handler
@@ -333,34 +280,34 @@ function MessageFeed() {
       
       //valid order statuses: open, filled, invalid, cancelled, and expired
       //update the give/get remaining numbers in the open orders listing, if it already exists
-      var match = ko.utils.arrayFirst(self.OPEN_ORDERS, function(item) {
-          return item['tx_hash'] == message['tx_hash'];
+      var match = ko.utils.arrayFirst(OPEN_ORDER_FEED.entries(), function(item) {
+          return item.TX_HASH == message['tx_hash'];
       });
       if(match) {
         if(message['_status'] != 'open') { //order is filled, expired, or cancelled, remove it from the listing
-          
-          self.removeOrder(message['tx_hash']);
-        
+          OPEN_ORDER_FEED.remove(message['tx_hash']);
         } else { //order is still open, but the quantities are updating
+          match.rawGiveRemaining(message['give_quantity_remaining']);
+          match.rawGetRemaining(message['get_quantity_remaining']);
           
           //if the order is for BTC and the qty remaining on either side is negative (but not on BOTH sides,
           // as it would be fully satified then and canceling would be pointless), auto cancel the order
-          if( (match['get_asset'] == 'BTC' || match['give_asset'] == 'BTC')
-             && (match['give_remaining'] <= 0 || match['get_remaining'] <= 0)
-             && !(match['give_remaining'] <= 0 && match['get_remaining'] <= 0)) {
-            $.jqlog.debug("Auto cancelling BTC order " + match['tx_hash']
+          if(   (match.GET_ASSET == 'BTC' || match.GIVE_ASSET == 'BTC')
+             && (match.rawGiveRemaining() <= 0 || match.rawGetRemaining() <= 0)
+             && !(match.rawGiveRemaining() <= 0 && match.rawGetRemaining() <= 0)) {
+            $.jqlog.debug("Auto cancelling BTC order " + match.TX_HASH
               + " as the give_remaining xor get_remaining <= 0 ...");
-            WALLET.doTransaction(match['source'], "create_cancel", {
-              offer_hash: match['tx_hash'],
-              source: match['source'],
+            WALLET.doTransaction(match.SOURCE, "create_cancel", {
+              offer_hash: match.TX_HASH,
+              source: match.SOURCE,
               _type: 'order',
-              _tx_index: match['tx_index']
+              _tx_index: match.TX_INDEX
             });
           }
         }
       } else if(WALLET.getAddressObj(message['source'])) {
         //order is not in the open orders listing, but should be
-        self.OPEN_ORDERS.push(message);
+        OPEN_ORDER_FEED.add(message);
       }
     } else if(category == "order_matches") {
       if(message['_btc_below_dust_limit'])
@@ -382,9 +329,8 @@ function MessageFeed() {
       }
     } else if(category == "order_expirations") {
       //Remove the order from the open orders list
-      self.removeOrder(message['order_hash']);
+      OPEN_ORDER_FEED.remove(message['order_hash']);
       WAITING_BTCPAY_FEED.remove(message['order_hash']); //just in case we had a BTC payment required for this order when it expired
-    
     } else if(category == "order_match_expirations") {
       //Would happen if the user didn't make a BTC payment in time
       WAITING_BTCPAY_FEED.remove(message['order_match_id']);
@@ -396,30 +342,6 @@ function MessageFeed() {
     } else if(category == "bet_expirations") {
       //TODO
     } else if(category == "bet_match_expirations") {
-      //TODO
-    } else if(category == "rps") {
-      
-    } else if(category == "rps_matches") {
-      
-      var moveParam = MESSAGE_FEED.OPEN_RPS[message['tx0_hash']] || MESSAGE_FEED.OPEN_RPS[message['tx1_hash']];
-      if (moveParam) {
-
-        moveParam['rps_match_id'] = message['id'];
-        delete moveParam['move_random_hash'];
-
-        var onSuccess = function(txHash, data, endpoint) {
-          MESSAGE_FEED.OPEN_RPS[txHash] = null;
-          //bootbox.alert("<b>RPS game auto resolved</b> " + ACTION_PENDING_NOTICE);
-        }
-
-        WALLET.doTransaction(moveParam['source'], "create_rpsresolve", moveParam, onSuccess);
-      }
-      
-    } else if(category == "rpsresolves") {
-      
-    } else if(category == "rps_expirations") {
-      //TODO
-    } else if(category == "rps_match_expirations") {
       //TODO
     } else {
       $.jqlog.error("Unknown message category: " + category);

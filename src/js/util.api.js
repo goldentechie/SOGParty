@@ -220,14 +220,14 @@ function _getDestTypeFromMethod(method) {
   var destType = "counterpartyd";
   if(['is_ready', 'get_reflected_host_info', 'is_chat_handle_in_use',
       'get_messagefeed_messages_by_index', 'get_normalized_balances', 'get_required_btcpays',
-      'get_chain_address_info', 'get_chain_block_height', 'get_chain_txns_status',
+      'get_btc_address_info', 'get_btc_block_height', 'get_btc_txns_status',
       'get_num_users_online', 'get_chat_handle', 'store_chat_handle', 'is_wallet_online', 'get_preferences', 'store_preferences',
       'get_raw_transactions', 'get_balance_history', 'get_last_n_messages',
       'get_owned_assets', 'get_asset_history', 'get_asset_extended_info', 'get_transaction_stats', 'get_wallet_stats', 'get_asset_pair_market_info',
       'get_market_price_summary', 'get_market_price_history', 'get_market_info', 'get_market_info_leaderboard', 'get_market_cap_history',
       'get_order_book_simple', 'get_order_book_buysell', 'get_trade_history',
       'record_btc_open_order', 'cancel_btc_open_order', 'get_bets', 'get_user_bets', 'get_feed', 'get_feeds_by_source',
-      'parse_base64_feed', 'get_open_rps_count', 'get_user_rps'].indexOf(method) >= 0) {
+      'parse_base64_feed'].indexOf(method) >= 0) {
     destType = "counterwalletd";
   }
   return destType;

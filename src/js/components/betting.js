@@ -503,22 +503,25 @@ function FeedBrowserViewModel() {
   }
 
   self.submitBet = function() {
+    $.jqlog.debug("submitBet");
   	if (!self.validationModel.isValid()) {
       self.validationModel.errors.showAllMessages();
       return false;
     }    
+    $.jqlog.debug("submitBet2");
 
     var params = {
       source: self.sourceAddress(),
       feed_address:  self.feed().source,
-      bet_type: BET_TYPES_ID[self.betType()],
+      bet_type: self.betType(),
       deadline: moment(self.deadline()).unix(),
-      wager_quantity: denormalizeQuantity(self.wager()),
-      counterwager_quantity: denormalizeQuantity(self.counterwager()),
+      wager: denormalizeQuantity(self.wager()),
+      counterwager: denormalizeQuantity(self.counterwager()),
       expiration: parseInt(self.expiration()),
       target_value: self.targetValue(),
       leverage: self.leverage()
     }
+    $.jqlog.debug(params);
     var onSuccess = function(txHash, data, endpoint) {
       bootbox.alert("<b>Your bet were sent successfully.</b> " + ACTION_PENDING_NOTICE);
     }
