@@ -34,6 +34,7 @@
     <link rel="stylesheet" type="text/css" media="screen" href="css/components/balances.css">
     <link rel="stylesheet" type="text/css" media="screen" href="css/components/buysell.css">
     <link rel="stylesheet" type="text/css" media="screen" href="css/components/betting.css">
+    <link rel="stylesheet" type="text/css" media="screen" href="css/components/rps.css">
     <!-- endbuild -->
 
     <!-- FAVICONS -->
@@ -86,17 +87,6 @@
               <h2>Pending Actions</h2>
               <div class="ajax-notifications custom-scroll"></div> <!-- notification content -->
               <span><b>Last updated:</b> <span id="pendingLastUpdated" data-bind="timeago: lastUpdated()"></span></span> <!-- footer -->
-            </div> <!-- .ajax-dropdown -->
-        </span>
-
-        <span id="openOrderFeed" class="activity-parent" data-contenturl="pages/feed_open_orders.html">
-            <span class="activity-dropdown">
-                <i class="fa fa-exchange"></i><b data-bind="visible: dispCount() > 0, text: dispCount" class="badge"></b>
-            </span>
-            <div class="ajax-dropdown">
-              <h2>Open Orders</h2>
-              <div class="ajax-notifications custom-scroll"></div> <!-- notification content -->
-              <span><b>Last updated:</b> <span id="openOrdersLastUpdated" data-bind="timeago: lastUpdated()"></span></span> <!-- footer -->
             </div> <!-- .ajax-dropdown -->
         </span>
 
@@ -155,12 +145,15 @@
         <ul>
           <li class="">
             <a href="pages/balances.html"><i class="fa fa-lg fa-fw fa-user"></i> <span class="menu-item-parent">My Balances</span></a>
-          </li>
+          </li>          
           <li class="">
-            <a href="pages/buysell.html"><i class="fa fa-lg fa-fw fa-exchange"></i> <span class="menu-item-parent">Buy &amp; Sell</span></a>
-          </li>
-          <li class="">
-            <a href="pages/view_prices.html"><i class="fa fa-lg fa-fw fa-bar-chart-o"></i> <span class="menu-item-parent">View Prices</span></a>
+            <a href="#"><i class="fa fa-lg fa-fw fa-exchange"></i> <span class="menu-item-parent">Exchange</span></a>
+            <ul>
+              <li><a href="pages/view_prices.html"><i class="fa fa-lg fa-fw fa-bar-chart-o"></i> View Prices</a></li>
+              <li><a href="pages/buysell.html"><i class="fa fa-lg fa-fw fa-share"></i> Buy &amp; Sell</a></li>
+              <li><a href="pages/openorders.html"><i class="fa fa-lg fa-fw fa-circle-o"></i> Open Orders</a></li>
+              <li><a href="pages/ordermatches.html"><i class="fa fa-lg fa-fw fa-book"></i> My Order History</a></li>
+            </ul>
           </li>
           <li class="">
             <a href="#"><i class="fa fa-lg fa-fw fa-bullseye"></i> <span class="menu-item-parent">Betting</span></a>
@@ -169,6 +162,9 @@
               <li><a href="pages/openbets.html"><i class="fa fa-lg fa-fw fa-circle-o"></i> Open Bets</a></li>
               <li><a href="pages/matchedbets.html"><i class="fa fa-lg fa-fw fa-book"></i> My Bet History</a></li>
             </ul>
+          </li>
+          <li class="">
+            <a href="pages/rps.html"><i class="fa-lg fa-fw glyphicon glyphicon-hand-right"></i> <span class="menu-item-parent">Rock-Paper-Scissors</span></a>
           </li>
           <li class="">
             <a href="pages/history.html"><i class="fa fa-lg fa-fw fa-book"></i> <span class="menu-item-parent">History</span></a>
@@ -709,7 +705,6 @@
     <script src="js/components/logon.js"></script>
     <script src="js/components/misc.js"></script>
     <script src="js/components/feed_notifications.js"></script>
-    <script src="js/components/feed_open_orders.js"></script>
     <script src="js/components/feed_pending_actions.js"></script>
     <script src="js/components/feed_btcpays.js"></script>
     <script src="js/components/chatfeed.js"></script>
@@ -724,6 +719,8 @@
     <script src="js/components/stats.js"></script>
     <script src="js/components/betting.js"></script>
     <script src="js/components/donate.js"></script>
+    <script src="js/components/exchange.js"></script>
+    <script src="js/components/rps.js"></script>
 
     <script src="js/smartadmin.app.js"></script> <!-- custom app.js -->
     <!-- ^ unfortunately we have to mod the file itself, instead of dynamically override o_O -->
