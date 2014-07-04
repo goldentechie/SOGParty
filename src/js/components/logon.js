@@ -419,10 +419,9 @@ function LogonPasswordModalViewModel() {
   self.doAction = function() {
     //simply fill in the data back into the passphrase field and close the dialog
     $('#password').val(self.dispFullPassphrase());
-    $('#password').change();
     self.resetForm(); //clear out the dialog too, for security
     self.shown(false);
-    LOGON_VIEW_MODEL.openWallet();
+    $('#walletLogin').click();
   }
 }
 

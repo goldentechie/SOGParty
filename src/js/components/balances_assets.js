@@ -403,22 +403,7 @@ function PayDividendModalViewModel() {
       params: '^[B-Z][A-Z]{3,23}$'
     },
     assetNameExists: self,
-    rateLimit: { timeout: 500, method: "notifyWhenChangesStop" },
-    validation:  {
-      validator: function (val, self) {
-        if(self.assetData() === null) return true; //wait until dividend asset chosen to validate
-        
-        var supply = new Decimal(normalizeQuantity(self.assetData().supply, self.assetData().divisible));
-        // we substract user balance for this asset
-        var userAsset = self.addressVM().getAssetObj(self.assetName());
-        if (userAsset) {
-          supply = supply.sub(new Decimal(userAsset.normalizedBalance()));
-        }
-        return supply > 0
-      },
-      message: 'No dividend to distribute.',
-      params: self
-    }
+    rateLimit: { timeout: 500, method: "notifyWhenChangesStop" }
   });
   // TODO: DRY! we already make a query to check if assetName exists
   self.assetName.subscribe(function(name) {
@@ -435,14 +420,14 @@ function PayDividendModalViewModel() {
   self.quantityPerUnit = ko.observable('').extend({
     required: true,
     isValidPositiveQuantity: self,
-    validation: [{
+    validation: {
       validator: function (val, self) {
         if(self.dividendAssetBalRemainingPostPay() === null) return true; //wait until dividend asset chosen to validate
         return self.dividendAssetBalRemainingPostPay() >= 0;
       },
       message: 'The total distribution would exceed the address\' balance for the selected Distribution Token.',
       params: self
-    }]
+    }    
   });
   
   self.totalPay = ko.computed(function() {
@@ -480,8 +465,7 @@ function PayDividendModalViewModel() {
   
   self.validationModel = ko.validatedObservable({
     quantityPerUnit: self.quantityPerUnit,
-    selectedDividendAsset: self.selectedDividendAsset,
-    assetName: self.assetName
+    selectedDividendAsset: self.selectedDividendAsset
   });
 
   self.resetForm = function() {
@@ -491,15 +475,15 @@ function PayDividendModalViewModel() {
     self.validationModel.errors.showAllMessages(false);
   }
   
-  self.submitForm = function() {   
+  self.submitForm = function() {
+    if (!self.validationModel.isValid()) {
+      self.validationModel.errors.showAllMessages();
+      return false;
+    }    
     $('#payDividendModal form').submit();
   }
   
   self.doAction = function() {
-    if (!self.validationModel.isValid()) {
-      self.validationModel.errors.showAllMessages();
-      return false;
-    }
     //do the additional issuance (specify non-zero quantity, no transfer destination)
     WALLET.doTransaction(self.addressVM().ADDRESS, "create_dividend",
       { source: self.addressVM().ADDRESS,
