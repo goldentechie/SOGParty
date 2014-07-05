@@ -187,6 +187,12 @@ function RpsViewModel() {
       } else {
         game['game_type'] = data[i]['possible_moves']+ 'moves'
       }
+      if (data[i]['status'] == 'pending' || data[i]['status'] == 'open') {
+        game['expiration'] = '~ ' + expireDate(data[i]['expiration']) + ' (' + data[i]['expiration'] + ')';
+      } else {
+        game['expiration'] = '-';
+      }
+      
       games.push(game);
     }
     self.pendingRPS(displayWarning);
@@ -248,7 +254,7 @@ function RpsViewModel() {
       source: self.sourceAddress(),
       wager: denormalizeQuantity(self.wager()),
       possible_moves: parseInt(self.possibleMoves()),
-      expiration: self.expiration(),
+      expiration: parseInt(self.expiration()),
       move_random_hash: moveParams['move_random_hash']
     }
     var onSuccess = function(txHash, data, endpoint) {
