@@ -1,7 +1,7 @@
 /***********
  * GLOBAL CONSTANTS
  ***********/
-var VERSION = "1.3.0 BETA";
+var VERSION = "1.2.1 BETA";
 
 var IS_MOBILE_OR_TABLET = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 var PREFERENCES = {}; //set when logging in
@@ -11,6 +11,7 @@ var UNIT = 100000000; //# satoshis in whole
 var MIN_FEE = 20000; // in satoshis (== .0002 BTC)
 var REGULAR_DUST_SIZE = 5430;
 var MULTISIG_DUST_SIZE = 5430 * 2;
+var APPROX_SECONDS_PER_BLOCK = 8 * 60; //a *rough* estimate on how many seconds per each block (used for estimating open order time left until expiration, etc)
 var MIN_PRIME_BALANCE = 50000; //in satoshis ... == .0005
 var ASSET_CREATION_FEE_XCP = 0.5; //in normalized XCP
 var MAX_ASSET_DESC_LENGTH = 41; //42, minus a null term character?
@@ -208,20 +209,4 @@ var FEED_TYPES = ['simple', 'cfd']
 
 var DONATION_ADDRESS = USE_TESTNET ? 'n4MGGJBkW9RjRKBbZfBAceHDndhywvVPV9' : '19U6MmLLumsqxXSBMB5FgYXbezgXYC6Gpe';
 
-var APPROX_SECONDS_PER_BLOCK = USE_TESTNET ? 20 * 60 : 8 * 60; //a *rough* estimate on how many seconds per each block (used for estimating open order time left until expiration, etc)
-
-var USER_COUNTRY = '';
-
-// restricted action
-var RESTRICTED_AREA = {
-  'pages/betting.html': ['US'],
-  'pages/openbets.html': ['US'],
-  'pages/matchedbets.html': ['US'],
-  'pages/rps.html': ['US'],
-  'dividend': ['US']
-}
-
-
-
-
-
+var LIMITED_COUNTRIES = ['US'];

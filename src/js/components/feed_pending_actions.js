@@ -13,7 +13,6 @@ PendingActionViewModel.calcText = function(category, data) {
   //This is data as it is specified from the relevant create_ API request parameters (NOT as it comes in from the message feed)
   var desc = "";
   var divisible = null;
-  var pending = data['mempool'] ? 'Unconfirmed' : 'Pending';
   //The category being allowable was checked in the factory class
   if(data['source'] && data['asset'])
     divisible = data['divisible'] !== undefined ? data['divisible'] : (data['_divisible'] !== undefined ? data['_divisible'] : WALLET.getAddressObj(data['source']).getAssetObj(data['asset']).DIVISIBLE);
@@ -21,25 +20,25 @@ PendingActionViewModel.calcText = function(category, data) {
     // otherwise, get it from an existing asset in our wallet
 
   if(category == 'burns') {
-    desc = pending + " burn of <Am>" + normalizeQuantity(data['quantity']) + "</Am> <As>BTC</As>";
+    desc = "Pending burn of <Am>" + normalizeQuantity(data['quantity']) + "</Am> <As>BTC</As>";
   } else if(category == 'sends') {
-    desc = pending + " send of <Am>" + numberWithCommas(normalizeQuantity(data['quantity'], divisible)) + "</Am> <As>" + data['asset']
+    desc = "Pending send of <Am>" + numberWithCommas(normalizeQuantity(data['quantity'], divisible)) + "</Am> <As>" + data['asset']
       + "</As> from <Ad>" + getLinkForCPData('address', data['source'],  getAddressLabel(data['source'])) + "</Ad>"
       + " to <Ad>" + getLinkForCPData('address', data['destination'],  getAddressLabel(data['destination'])) + "</Ad>"; 
   } else if(category == 'orders') {
-    desc = pending + " order to sell <Am>" + numberWithCommas(normalizeQuantity(data['give_quantity'], data['_give_divisible']))
+    desc = "Pending order to sell <Am>" + numberWithCommas(normalizeQuantity(data['give_quantity'], data['_give_divisible']))
       + "</Am> <As>" + data['give_asset'] + "</As> for <Am>"
       + numberWithCommas(normalizeQuantity(data['get_quantity'], data['_get_divisible'])) + "</Am> <As>"
       + data['get_asset'] + "</As>";
   } else if(category == 'issuances') {
     if(data['transfer_destination']) {
-      desc = pending + " transfer of token <As>" + data['asset'] + "</As> from <Ad>"
+      desc = "Pending transfer of token <As>" + data['asset'] + "</As> from <Ad>"
         + getLinkForCPData('address', data['source'], getAddressLabel(data['source'])) + "</Ad> to <Ad>"
         + getLinkForCPData('address', data['transfer_destination'], getAddressLabel(data['transfer_destination'])) + "</Ad>"; 
     } else if(data['locked']) {
-      desc = pending + " lock of token <As>" + data['asset'] + "</As> against additional issuance";
+      desc = "Pending lock of token <As>" + data['asset'] + "</As> against additional issuance";
     } else if(data['quantity'] == 0) {
-      desc = pending + " change of description for token <As>" + data['asset'] + "</As> to <b>" + data['description'] + "</b>";
+      desc = "Pending change of description for token <As>" + data['asset'] + "</As> to <b>" + data['description'] + "</b>";
     } else {
       //See if this is a new issuance or not
       var assetObj = null;
@@ -48,53 +47,36 @@ PendingActionViewModel.calcText = function(category, data) {
         assetObj = WALLET.getAddressObj(addressesWithAsset[0]).getAssetObj(data['asset']);
       
       if(assetObj) { //the asset exists in our wallet already somewhere, so it's an additional issuance of more units for it
-        desc = pending + " issuance of <Am>" + numberWithCommas(normalizeQuantity(data['quantity'], data['divisible']))
+        desc = "Pending issuance of <Am>" + numberWithCommas(normalizeQuantity(data['quantity'], data['divisible']))
           + "</Am> additional units for token <As>" + data['asset'] + "</As>";
       } else { //new issuance
-        desc = pending + " creation of token <As>" + data['asset'] + "</As> with initial quantity of <Am>"
+        desc = "Pending creation of token <As>" + data['asset'] + "</As> with initial quantity of <Am>"
           + numberWithCommas(normalizeQuantity(data['quantity'], data['divisible'])) + "</Am> units";
       }
     }
   } else if(category == 'broadcasts') {
-    desc = pending + " broadcast:<br/>Text: " + data['text'] + "<br/>Value:" + data['value'];
+    desc = "Pending broadcast:<br/>Text: " + data['text'] + "<br/>Value:" + data['value'];
   } else if(category == 'bets') {
-    desc = pending + " <b>" + data['bet_type'] + "</b> bet on feed @ <Ad>"
+    desc = "Pending <b>" + data['bet_type'] + "</b> bet on feed @ <Ad>"
       + getLinkForCPData('address', data['feed_address'], getAddressLabel(data['feed_address'])) + "</Ad><br/>"
       + "Wager: <Am>"
       + numberWithCommas(normalizeQuantity(data['wager_quantity'])) + "</Am> <As>XCP</As>, Counterwager: <Am>"
       + numberWithCommas(normalizeQuantity(data['counterwager_quantity'])) + "</Am> <As>XCP</As>";  
   } else if(category == 'dividends') {
-    
-    var divUnitDivisible;
-    if (WALLET.getAddressObj(data['source'])) {
-      divUnitDivisible = WALLET.getAddressObj(data['source']).getAssetObj(data['dividend_asset']).DIVISIBLE;
-      desc = pending + " dividend payment ";
-    } else {
-      divUnitDivisible = data['dividend_asset_divisible'];
-      desc = pending + " dividend reception ";
-    }
-    desc += "of <Am>" + numberWithCommas(normalizeQuantity(data['quantity_per_unit'], divUnitDivisible)) + "</Am> <As>"
-        + data['dividend_asset'] + "</As> on token <As>" + data['asset'] + "</As>";
-  
+    var divUnitDivisible = WALLET.getAddressObj(data['source']).getAssetObj(data['dividend_asset']).DIVISIBLE;
+    desc = "Pending dividend payment of <Am>" + numberWithCommas(normalizeQuantity(data['quantity_per_unit'], divUnitDivisible)) + "</Am> <As>"
+      + data['dividend_asset'] + "</As> on token <As>" + data['asset'] + "</As>";
   } else if(category == 'cancels') {
-    desc = pending + " cancellation of " + data['_type'] + " ID <b>" + data['_tx_index'] + "</b>";
+    desc = "Pending cancellation of " + data['_type'] + " ID <b>" + data['_tx_index'] + "</b>";
   } else if(category == 'callbacks') {
-    desc = pending + " callback for <Am>" + (data['fraction'] * 100).toFixed(4) + "%</Am> outstanding on token <As>" + data['asset'] + "</As>";
+    desc = "Pending callback for <Am>" + (data['fraction'] * 100).toFixed(4) + "%</Am> outstanding on token <As>" + data['asset'] + "</As>";
   } else if(category == 'btcpays') {
-    desc = pending + " BTC Payment from <Ad>" + getAddressLabel(data['source']) + "</Ad>";
+    desc = "Pending BTC Payment from <Ad>" + getAddressLabel(data['source']) + "</Ad>";
   } else if(category == 'rps') {
-    desc  = pending + "  RPS game with <Ad>" + getAddressLabel(data['source']) + "</Ad>: ";
+    desc  = "Pending RPS game with <Ad>" + getAddressLabel(data['source']) + "</Ad>: ";
     desc += " <Am>"+numberWithCommas(normalizeQuantity(data['wager'])) + '</Am> <As>XCP</As>';
   } else if(category == 'rpsresolves') {
-    desc  = pending + " RPS resolution with <Ad>" + getAddressLabel(data['source']) + "</Ad>";
-  } else if(category == 'order_matches') {
-
-    if (WALLET.getAddressObj(data['tx1_address']) && data['forward_asset'] == 'BTC' && data['_status'] == 'pending') {      
-      desc = "Waiting <Am>" + numberWithCommas(normalizeQuantity(data['forward_quantity'])) + "</Am> <As>BTC</As> payment from <Ad>" + getAddressLabel(data['tx0_address']) + "</Ad>";
-    } else if (WALLET.getAddressObj(data['tx0_address']) && data['backward_asset'] == 'BTC' && data['_status'] == 'pending') {
-      desc = "Waiting <Am>" + numberWithCommas(normalizeQuantity(data['backward_quantity'])) + "</Am> <As>BTC</As> payment from <Ad>" + getAddressLabel(data['tx1_address']) + "</Ad>";
-    }
-
+    desc  = "Pending RPS resolution with <Ad>" + getAddressLabel(data['source']) + "</Ad>";
   } else {
     desc = "UNHANDLED TRANSACTION CATEGORY";
   }
@@ -111,7 +93,7 @@ function PendingActionFeedViewModel() {
   self.entries = ko.observableArray([]); //pending actions beyond pending BTCpays
   self.lastUpdated = ko.observable(new Date());
   self.ALLOWED_CATEGORIES = [
-    'sends', 'orders', 'issuances', 'broadcasts', 'bets', 'dividends', 'burns', 'cancels', 'callbacks', 'btcpays', 'rps', 'rpsresolves', 'order_matches'
+    'sends', 'orders', 'issuances', 'broadcasts', 'bets', 'dividends', 'burns', 'cancels', 'callbacks', 'btcpays', 'rps', 'rpsresolves'
     //^ pending actions are only allowed for these categories
   ];
   
@@ -158,7 +140,6 @@ function PendingActionFeedViewModel() {
     
     self.lastUpdated(new Date());
     PendingActionFeedViewModel.modifyBalancePendingFlag(category, data, true);
-    WALLET.refreshBTCBalances();
   }
 
   self.remove = function(txHash, category, btcRefreshSpecialLogic) {
@@ -207,9 +188,7 @@ function PendingActionFeedViewModel() {
     var txHashes = [], i = null;
     if(pendingActionsStorage === null) pendingActionsStorage = [];
     for(var i=0; i < pendingActionsStorage.length; i++) {
-      if (pendingActionsStorage[i]['txHash'].length==64) {
-        txHashes.push(pendingActionsStorage[i]['txHash']);
-      }
+      txHashes.push(pendingActionsStorage[i]['txHash']);
     }
     if(!txHashes.length) return onSuccess ? onSuccess() : null;
 
@@ -239,120 +218,31 @@ function PendingActionFeedViewModel() {
 PendingActionFeedViewModel.modifyBalancePendingFlag = function(category, data, flagSetting) {
   assert(flagSetting === true || flagSetting === false);
   //depending on the value of category and data, will modify the associated asset(s) (if any)'s balanceChangePending flag
-
-  var updateUnconfirmedBalance = function(addrObj, asset, quantity) {
-    var assetObj = addrObj.getAssetObj(asset);
-    if (assetObj) {
-      var newUnconfirmedBalance = normalizeQuantity(quantity, assetObj.DIVISIBLE);
-      if (flagSetting) {
-        assetObj.unconfirmedBalance(assetObj.unconfirmedBalance() + newUnconfirmedBalance);
-      } else {
-        assetObj.unconfirmedBalance(assetObj.unconfirmedBalance() - newUnconfirmedBalance);
-      }
-    }
-  }
-
   var addressObj = null;
   if(category == 'burns') {
-
     addressObj = WALLET.getAddressObj(data['source']);
     addressObj.getAssetObj("BTC").balanceChangePending(flagSetting);
     addressObj.getAssetObj("XCP").balanceChangePending(flagSetting);
-    updateUnconfirmedBalance(addressObj, "BTC", data['quantity'] * -1);
-    
-
   } else if(category == 'sends') {
-
     addressObj = WALLET.getAddressObj(data['source']);
     if(addressObj && addressObj.getAssetObj(data['asset'])) {
       //source addr may not exist in the wallet if we are importing funds from an outside address 
       addressObj.getAssetObj(data['asset']).balanceChangePending(flagSetting);
-      updateUnconfirmedBalance(addressObj, data['asset'], data['quantity'] * -1);
     }
-
     addressObj = WALLET.getAddressObj(data['destination']);
     if(addressObj && addressObj.getAssetObj(data['asset'])) {
       //dest addr may not exist in the wallet if we are sending funds to an outside address 
       addressObj.getAssetObj(data['asset']).balanceChangePending(flagSetting);
-      updateUnconfirmedBalance(addressObj, data['asset'], data['quantity']);
     }
-
   } else if(category == 'btcpays') {
-
     addressObj = WALLET.getAddressObj(data['source']);
-    if (addressObj) {
-      addressObj.getAssetObj("BTC").balanceChangePending(flagSetting);
-      updateUnconfirmedBalance(addressObj, "BTC", data['quantity'] * -1);
-    }
-
-    addressObj = WALLET.getAddressObj(data['destination']);
-    if (addressObj) {
-      addressObj.getAssetObj("BTC").balanceChangePending(flagSetting);
-      updateUnconfirmedBalance(addressObj, "BTC", data['quantity']);
-    } 
-
+    addressObj.getAssetObj("BTC").balanceChangePending(flagSetting);
   } else if(category == 'issuances' && data['quantity'] != 0 && !data['locked'] && !data['transfer_destination']) {
     //with this, we don't modify the balanceChangePending flag, but the issuanceQtyChangePending flag instead...
     addressObj = WALLET.getAddressObj(data['source']);
     var assetObj = addressObj.getAssetObj(data['asset']);
     if(assetObj && assetObj.isMine())
       assetObj.issuanceQtyChangePending(flagSetting);
-  
-  } else if (category == 'dividend') {
-
-    addressObj = WALLET.getAddressObj(data['source']);
-    if (addressObj) {
-      var assetObj = addressObj.getAssetObj(data['dividend_asset']);
-      if (assetObj) {
-        assetObj.balanceChangePending(flagSetting);
-        updateUnconfirmedBalance(addressObj, data['dividend_asset'], data['quantity_per_unit'] * assetObj.holdersSupply * -1);
-      }
-    }
-
-    addressObj = WALLET.getAddressObj(data['destination']);
-    if (addressObj) {
-      var assetObj = addressObj.getAssetObj(data['dividend_asset']);
-      if (assetObj) {
-        assetObj.balanceChangePending(flagSetting);
-        updateUnconfirmedBalance(addressObj, data['dividend_asset'], data['quantity_per_unit'] * assetObj.rawBalance);
-      }
-    }
-
-  } else if (category == 'orders') {
-
-    if (data['give_asset'] != 'BTC') {
-      addressObj = WALLET.getAddressObj(data['source']);
-      if (addressObj) {
-        var assetObj = addressObj.getAssetObj(data['give_asset']);
-        if (assetObj) {
-          assetObj.balanceChangePending(flagSetting);
-          updateUnconfirmedBalance(addressObj, data['give_asset'], data['give_quantity'] * -1);
-        }
-      } 
-    }   
-
-  } else if (category == 'bets') {
-
-    addressObj = WALLET.getAddressObj(data['source']);
-    if (addressObj) {
-      var assetObj = addressObj.getAssetObj('XCP');
-      if (assetObj) {
-        assetObj.balanceChangePending(flagSetting);
-        updateUnconfirmedBalance(addressObj, 'XCP', data['wager_quantity'] * -1);
-      }
-    }
-    
-  } else if (category == 'rps') {
-
-    addressObj = WALLET.getAddressObj(data['source']);
-    if (addressObj) {
-      var assetObj = addressObj.getAssetObj('XCP');
-      if (assetObj) {
-        assetObj.balanceChangePending(flagSetting);
-        updateUnconfirmedBalance(addressObj, 'XCP', data['wager'] * -1);
-      }
-    }
-    
   }
 }
 
