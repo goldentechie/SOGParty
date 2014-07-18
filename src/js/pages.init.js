@@ -316,9 +316,6 @@ INIT_FUNC['pages/leaderboard.html'] = initLeaderboard;
 
 
 function initViewPrices() {
-  // Hack to resolve books widgets positions
-  localStorage.removeItem('Plugin_position_pages/view_prices.html_widget-grid');
-  
   pageSetUp(); //init smartadmin featureset
   
   //This code is run on each visit to the page
@@ -326,9 +323,11 @@ function initViewPrices() {
   ko.applyBindings(VIEW_PRICES, document.getElementsByClassName("ordersGrid")[0]);
   
   VIEW_PRICES.init(true);
-
-  $('#changeMarket').click(function() {
-    loadURL('pages/view_prices.html', $('#content'));
+  
+  $(window).resize(VIEW_PRICES.dataTableResponsive);
+  $(window).on('hashchange', function() {
+    VIEW_PRICES.metricsStopAutoRefresh(); //just in case
+    $(window).off("resize", VIEW_PRICES.dataTableResponsive);
   });
 }
 INIT_FUNC['pages/view_prices.html'] = initViewPrices;
