@@ -234,7 +234,6 @@ function ExchangeViewModel() {
     if (self.sellPrice()) {
       self.sellTotal(mulFloat(self.sellPrice(), amount));
     }
-    self.selectSellOrder(order);
   }
 
   self.setMaxSellAmount = function() {
@@ -442,7 +441,6 @@ function ExchangeViewModel() {
     if (self.buyPrice()) {
       self.buyTotal(mulFloat(self.buyPrice(), amount));
     }
-    self.selectBuyOrder(order);
   }
 
   self.setMaxBuyAmount = function() {
