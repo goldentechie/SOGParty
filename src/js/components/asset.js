@@ -46,11 +46,6 @@ function AssetViewModel(props) {
   }, self);
 
   self.unconfirmedBalance = ko.observable(0);
-  self.unconfirmedBalance.subscribe(function(value) {
-    if (value==0) {
-      self.balanceChangePending(false);
-    }
-  })
   
   self.dispBalance = ko.computed(function() {
     var confirmed = self.normalizedBalance() === null ? '??' : smartFormat(self.normalizedBalance(), true);

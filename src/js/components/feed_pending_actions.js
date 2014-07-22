@@ -259,23 +259,17 @@ PendingActionFeedViewModel.modifyBalancePendingFlag = function(category, data, f
     } 
   }
 
-  var updateUnconfirmedBalance = function(address, asset, quantity, dividend, assetInfo) {
+  var updateUnconfirmedBalance = function(address, asset, quantity, dividend) {
 
     var addrObj = WALLET.getAddressObj(address);
     if (addrObj) {
       var assetObj = addrObj.getAssetObj(asset);
       if (!assetObj && flagSetting) {
-        if (assetInfo) {
-          addrObj.addOrUpdateAsset(asset, assetInfo, 0);
+        failoverAPI("get_asset_info", {'assets': [asset]}, function(assetsInfo, endpoint) {
+          addrObj.addOrUpdateAsset(asset, assetsInfo[0], 0);
           assetObj = addrObj.getAssetObj(asset);
           updateAssetObj(assetObj, quantity, dividend);
-        } else {
-          failoverAPI("get_asset_info", {'assets': [asset]}, function(assetsInfo, endpoint) {
-            addrObj.addOrUpdateAsset(asset, assetsInfo[0], 0);
-            assetObj = addrObj.getAssetObj(asset);
-            updateAssetObj(assetObj, quantity, dividend);
-          });
-        }
+        });
       } else if (assetObj) {
         updateAssetObj(assetObj, quantity, dividend);
       }
@@ -301,19 +295,14 @@ PendingActionFeedViewModel.modifyBalancePendingFlag = function(category, data, f
     updateUnconfirmedBalance(data['source'], "BTC", data['quantity'] * -1);
     updateUnconfirmedBalance(data['destination'], "BTC", data['quantity']);
 
-  } else if(category == 'issuances' && !data['locked'] && !data['transfer_destination']) {
+  } else if(category == 'issuances' && data['quantity'] != 0 && !data['locked'] && !data['transfer_destination']) {
     //with this, we don't modify the balanceChangePending flag, but the issuanceQtyChangePending flag instead...
     addressObj = WALLET.getAddressObj(data['source']);
     var assetObj = addressObj.getAssetObj(data['asset']);
     if(assetObj && assetObj.isMine()) {
-      //assetObj.issuanceQtyChangePending(flagSetting);
-      updateUnconfirmedBalance(data['source'], data['asset'], data['quantity']);
-    } else if (!assetObj) {
-      //updateUnconfirmedBalance(data['source'], data['asset'], data['quantity'], null, data);
-      // issuance fee
-      updateUnconfirmedBalance(data['source'], 'XCP', -ASSET_CREATION_FEE_XCP * UNIT);
+      assetObj.issuanceQtyChangePending(flagSetting);
     }
-
+  
   } else if (category == 'dividend') {
 
     updateUnconfirmedBalance(data['source'], data['dividend_asset'], data['quantity_per_unit'], 'source');
