@@ -188,7 +188,7 @@ function WalletViewModel() {
         assets.push(assetObj.ASSET);
       }
     }
-    return _.uniq(assets);
+    return arrayUnique(assets);
   }
 
   self.isAssetHolder = function(asset) {
@@ -244,7 +244,7 @@ function WalletViewModel() {
           assets.push(assetObj.ASSET);
       }
     }
-    return _.uniq(assets);
+    return arrayUnique(assets);
   }
   
   self.refreshCounterpartyBalances = function(addresses, onSuccess) {
