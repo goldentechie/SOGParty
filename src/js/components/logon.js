@@ -257,7 +257,7 @@ function LogonViewModel() {
     //store the preferences on the server(s) for future use
     if(mustSavePreferencesToServer) {
       $.jqlog.info("Preferences updated/generated during login. Updating on server(s)...");
-      WALLET.storePreferences(null, true);
+      self.storePreferences(null, true);
     }
     
     //Update the wallet balances (isAtLogon = true)

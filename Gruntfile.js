@@ -2,7 +2,7 @@ module.exports = function (grunt) {
 
     var buildDir = 'build/';
 
-    var config = {
+    grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
 
         build: {
@@ -33,24 +33,7 @@ module.exports = function (grunt) {
                 ]
             }
         }
-    }
-    /*config['chrome-extension'] = {
-        options: {
-            name: "counterwallet",
-            version: pkg.version,
-            id: "00000000000000000000000000000000",
-            //updateUrl: "http://example.com/extension/111111/",
-            chrome: "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-            clean: true,
-            certDir: '.',
-            buildDir: '.',
-            resources: [
-                "build/**"
-            ]
-        }
-    }*/
-    
-    grunt.initConfig(config);
+    });
 
     grunt.loadTasks('grunt-tasks');
 
