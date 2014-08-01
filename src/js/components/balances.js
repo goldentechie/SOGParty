@@ -176,19 +176,13 @@ function CreateNewAddressModalViewModel() {
 
     //save prefs to server
     WALLET.storePreferences(function(data, endpoint) {
-      self.shown(false);
-      
-      if(self.addressType() != 'normal') {
-        //If we created a watch or armory address, refresh the counterparty balances with this new address
-        //btc address balances will refresh on the refresh of the balances page itself
-        setTimeout(function() { WALLET.refreshCounterpartyBalances([newAddress], checkURL)});
-      } else {
-        //Otherwise (a new non-watch address), just refresh the page
-        setTimeout(checkURL, 800); //necessary to use setTimeout so that the modal properly hides before we refresh the page
-      }
+      self.shown(false);      
+      WALLET.refreshCounterpartyBalances([newAddress]);
+      WALLET.refreshBTCBalances();
     });
     trackEvent('Balances', self.addressType() == 'normal' ? 'CreateNewAddress' : (
       self.addressType() == 'watch' ? 'CreateNewWatchAddress' : 'CreateNewArmoryOfflineAddress'));
+
   }
   
   self.show = function(addressType, resetForm) {
@@ -219,14 +213,7 @@ function SendModalViewModel() {
     isValidBitcoinAddress: self,
     isNotSameBitcoinAddress: self
   });
-  
-  self.quantity = ko.observable();
-  
-  self.computedQuantity = ko.computed(function() {
-  	return (self.quantity() + "").replace(",","");
-  });
-  
-  self.computedQuantity.extend({
+  self.quantity = ko.observable().extend({
     required: true,
     isValidPositiveQuantity: self,
     isValidQtyForDivisibility: self,
@@ -239,9 +226,9 @@ function SendModalViewModel() {
       },
       message: 'Quantity entered exceeds your current balance.',
       params: self
-    }   
+    }    
   });
-    
+  
   self.normalizedBalance = ko.computed(function() {
     if(self.address() === null || self.rawBalance() === null) return null;
     return normalizeQuantity(self.rawBalance(), self.divisible());
@@ -252,9 +239,9 @@ function SendModalViewModel() {
   }, self);
   
   self.normalizedBalRemaining = ko.computed(function() {
-    if(!isNumber(self.computedQuantity())) return null;
+    if(!isNumber(self.quantity())) return null;
     var curBalance = normalizeQuantity(self.rawBalance(), self.divisible());
-    var balRemaining = Decimal.round(new Decimal(curBalance).sub(parseFloat(self.computedQuantity())), 8, Decimal.MidpointRounding.ToEven).toFloat();
+    var balRemaining = Decimal.round(new Decimal(curBalance).sub(parseFloat(self.quantity())), 8, Decimal.MidpointRounding.ToEven).toFloat();
     if(balRemaining < 0) return null;
     return balRemaining;
   }, self);
@@ -269,7 +256,7 @@ function SendModalViewModel() {
   
   self.validationModel = ko.validatedObservable({
     destAddress: self.destAddress,
-    quantity: self.computedQuantity()
+    quantity: self.quantity
   });  
   
   self.resetForm = function() {
@@ -283,7 +270,6 @@ function SendModalViewModel() {
       self.validationModel.errors.showAllMessages();
       return false;
     }    
-    self.quantity(self.computedQuantity());
     //data entry is valid...submit to the server
     $('#sendModal form').submit();
   }
