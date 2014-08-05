@@ -154,9 +154,7 @@ function WaitingBTCPayFeedViewModel() {
     if(match) {
       self.entries.remove(match);
       self.lastUpdated(new Date());
-      return match;
     }
-    return false;
   }
   
   self.sort = function() {
@@ -315,9 +313,7 @@ function UpcomingBTCPayFeedViewModel() {
     if(match) {
       self.entries.remove(match);
       self.lastUpdated(new Date());
-      return match;
     }
-    return false;
   }
   
   self.sort = function() {

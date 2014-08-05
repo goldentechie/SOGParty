@@ -65,21 +65,8 @@ function AddressViewModel(type, key, address, initialLabel, armoryPubKey) {
     });
     return assets;
   }
-
-  self.updateEscrowedBalances = function() {
-    failoverAPI("get_escrowed_balances", {'addresses': [self.ADDRESS]}, function(escrowedBalances) {
-      if (escrowedBalances[self.ADDRESS]) {
-        for (var asset in escrowedBalances[self.ADDRESS]) {
-          var assetObj = self.getAssetObj(asset);
-          if (assetObj) {
-            assetObj.escrowedBalance(escrowedBalances[self.ADDRESS][asset])
-          }
-        }
-      }
-    });
-  }
   
-  self.addOrUpdateAsset = function(asset, assetInfo, initialRawBalance, escrowedBalance) {
+  self.addOrUpdateAsset = function(asset, assetInfo, initialRawBalance) {
     //Update asset property changes (ONLY establishes initial balance when logging in! -- past that, balance changes
     // come from debit and credit messages)
     //initialRawBalance is null if this is not an initial update
@@ -91,7 +78,6 @@ function AddressViewModel(type, key, address, initialLabel, armoryPubKey) {
     if(asset == 'BTC' || asset == 'XCP') { //special case update
       assert(match); //was created when the address viewmodel was initialized...
       match.rawBalance(initialRawBalance);
-      match.escrowedBalance(escrowedBalance);
       return;
     }
 
@@ -111,9 +97,7 @@ function AddressViewModel(type, key, address, initialLabel, armoryPubKey) {
         description: assetInfo['description'], 
         callable: assetInfo['callable'],
         callDate: assetInfo['call_date'],
-        callPrice: assetInfo['call_price'],
-        rawEscrowedBalance: escrowedBalance,
-        escrowedBalance: normalizeQuantity(escrowedBalance, assetInfo['divisible'])
+        callPrice: assetInfo['call_price']
       };
       self.assets.push(new AssetViewModel(assetProps)); //add new
       setTimeout(function() {
