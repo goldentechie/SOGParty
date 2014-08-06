@@ -154,7 +154,8 @@
                         <span data-bind="visible: issuanceQtyChangePending" title="Quantity issued change pending">
                             <i class="icon-append fa fa-spinner fa-spin"></i></span>
                     </span><br/>
-                    Bal: <span data-bind="html: dispBalance"></span>
+                    Bal: <span data-bind="html: dispBalance"></span> 
+                    <span data-bind="html: dispEscrowedBalance"></span>
                     <span data-bind="visible: balanceChangePending"
                         title="Balance change pending"><i class="icon-append fa fa-spinner fa-spin"></i></span></p>
                 <div class="balancesAssetIcons">
@@ -286,7 +287,7 @@
                     <input name="quantity" data-bind="value: quantity, valueUpdate: 'input', attr: {placeholder: 'Enter quantity'}" type="text"/>
                 </label>
                 <span>&nbsp;&nbsp;<button type="button" data-bind="click: maxAmount" class="btn btn-default btn-sm">MAX</button></span>
-                <span class="invalid" data-bind="validationMessage: quantity"></span>
+                <span class="invalid" data-bind="validationMessage: computedQuantity"></span>
             </div>
           </div></section>
         </fieldset></form>
