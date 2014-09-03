@@ -63,18 +63,11 @@ function AssetViewModel(props) {
       self.balanceChangePending(false);
     }
   })
-
-  self.availableBalance = ko.computed(function() {
-    return addFloat(self.normalizedBalance(), self.unconfirmedBalance());
-  });
   
-  self.rawAvailableBalance = ko.computed(function() {
-    return denormalizeQuantity(self.availableBalance(), self.DIVISIBLE);
-  });
-
   self.dispBalance = ko.computed(function() {
     var confirmed = self.normalizedBalance() === null ? '??' : smartFormat(self.normalizedBalance(), true);
-    var unconfirmed = self.availableBalance() != self.normalizedBalance() ? ' <span style="font-size:11px">(' + smartFormat(self.availableBalance(), true) + ')</span>' : '';
+    var unconfirmedBal = addFloat(self.normalizedBalance(), self.unconfirmedBalance());
+    var unconfirmed = unconfirmedBal != self.normalizedBalance() ? ' <span style="font-size:11px">(' + smartFormat(unconfirmedBal, true) + ')</span>' : '';
     return confirmed + unconfirmed;
   }, self);
   
@@ -83,13 +76,10 @@ function AssetViewModel(props) {
   }, self);
 
   self.send = function () {
-    if(self.availableBalance()<=0) { 
-      bootbox.alert("You have no available <b class='notoAssetColor'>" + self.ASSET + "</b>" + 
-                    " at address <b class='notoAddrColor'>" + getAddressLabel(self.ADDRESS) + "</b> to send."); 
-      return; 
-    }
+    if(!self.rawBalance()) { bootbox.alert("You have no available <b class='notoAssetColor'>" + self.ASSET + "</b>"
+      + " at address <b class='notoAddrColor'>" + getAddressLabel(self.ADDRESS) + "</b> to send."); return; }
     if(!WALLET.canDoTransaction(self.ADDRESS)) return false;
-    SEND_MODAL.show(self.ADDRESS, self.ASSET, self.rawAvailableBalance(), self.DIVISIBLE);
+    SEND_MODAL.show(self.ADDRESS, self.ASSET, self.rawBalance(), self.DIVISIBLE);
   };
   
   self.showInfo = function () {
@@ -97,11 +87,8 @@ function AssetViewModel(props) {
   };
   
   self.testnetBurn = function () {
-    if(!self.availableBalance()) { 
-      bootbox.alert("You have no available <b class='notoAssetColor'>" + self.ASSET + "</b>" + 
-                    " at address <b class='notoAddrColor'>" + getAddressLabel(self.ADDRESS) + "</b> to burn."); 
-      return; 
-    }
+    if(!self.rawBalance()) { bootbox.alert("You have no available <b class='notoAssetColor'>" + self.ASSET + "</b>"
+      + " at address <b class='notoAddrColor'>" + getAddressLabel(self.ADDRESS) + "</b> to burn."); return; }
     if(!WALLET.canDoTransaction(self.ADDRESS)) return false;
     TESTNET_BURN_MODAL.show(self.ADDRESS);
   };
