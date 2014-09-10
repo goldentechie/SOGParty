@@ -66,10 +66,10 @@ var AssetPortfolioViewModel = AssetLeaderboardViewModel.extend(function() {
             plotShadow: false
         },
         title: {
-            text: i18n.t("composition_by_value", self.showPortfolioIn())
+            text: 'Composition by Value (in ' + self.showPortfolioIn() + ')'
         },
         tooltip: {
-          pointFormat: '{series.name}: <b>{point.percentage:.2f}%</b><br>(' + i18n.t("x_total_value", '{point.y:.2f} ' + self.showPortfolioIn()) + ')</b>'
+          pointFormat: '{series.name}: <b>{point.percentage:.2f}%</b><br>(<b>{point.y:.2f} ' + self.showPortfolioIn() + '</b> total value)</b>'
         },
         plotOptions: {
             pie: {
@@ -84,7 +84,7 @@ var AssetPortfolioViewModel = AssetLeaderboardViewModel.extend(function() {
         credits: { enabled: false },
         series: [{
             type: 'pie',
-            name: i18n.t('per_of_portofolio'),
+            name: '% of Portfolio',
             data: self.myGraphTables[self.showPortfolioIn()]['valByAsset']()
         }]
     });        
@@ -95,7 +95,7 @@ var AssetPortfolioViewModel = AssetLeaderboardViewModel.extend(function() {
             plotShadow: false
         },
         title: {
-            text: i18n.t('composition_by_quantity')
+            text: 'Composition by Quantity Owned'
         },
         tooltip: {
           pointFormat: '{series.name}: <b>{point.percentage:.2f}%</b>'
@@ -113,7 +113,7 @@ var AssetPortfolioViewModel = AssetLeaderboardViewModel.extend(function() {
         credits: { enabled: false },
         series: [{
             type: 'pie',
-            name: i18n.t('per_of_portofolio'),
+            name: '% of Portfolio',
             data: self.myGraphTables[self.showPortfolioIn()]['balByAsset']()
         }]
     });
@@ -122,10 +122,10 @@ var AssetPortfolioViewModel = AssetLeaderboardViewModel.extend(function() {
             type: 'column'
         },
         title: {
-            text: i18n.t('24h_change', self.showPortfolioIn())
+            text: '24 Hour % Change vs ' + self.showPortfolioIn()
         },
         tooltip: {
-          pointFormat: '{series.name}: <b>{point.y:.2f}%</b> ' + i18n.t('vs') + ' ' + self.showPortfolioIn()
+          pointFormat: '{series.name}: <b>{point.y:.2f}%</b> vs ' + self.showPortfolioIn()
         },
         xAxis: { labels: { enabled: false } },
         yAxis: { title: { text: null } },
@@ -133,7 +133,7 @@ var AssetPortfolioViewModel = AssetLeaderboardViewModel.extend(function() {
         series: self.myGraphTables[self.showPortfolioIn()]['pctChange']()
     });
     if(!self.myGraphTables[self.showPortfolioIn()]['pctChange'].length)
-      $('#pctChangeBar').highcharts().showLoading(i18n.t('no_data_to_display'));
+      $('#pctChangeBar').highcharts().showLoading('No data to display');
   }
 });
 

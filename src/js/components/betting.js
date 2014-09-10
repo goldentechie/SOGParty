@@ -12,7 +12,7 @@ function FeedBrowserViewModel() {
         var wager = self.wager();
         return parseFloat(wager) <= self.balances[address];
       },
-      message: i18n.t('quantity_exceeds_balance'),
+      message: 'Quantity entered exceeds the address balance.',
       params: self
     }    
   }
@@ -22,10 +22,10 @@ function FeedBrowserViewModel() {
   self.targetValueText = ko.observable('');
   self.betType = ko.observable('');
   self.betTypeCounter = ko.observable('');
-  self.betTypeLabelBull = ko.observable(i18n.t('bullish_up'));
-  self.betTypeLabelBear = ko.observable(i18n.t('bearish_down'));
-  self.betTypeLabelEqual = ko.observable(i18n.t('equal'));
-  self.betTypeLabelNotEqual = ko.observable(i18n.t('notequal'));
+  self.betTypeLabelBull = ko.observable('Bullish (up)');
+  self.betTypeLabelBear = ko.observable('Bearish (down)');
+  self.betTypeLabelEqual = ko.observable('Equal');
+  self.betTypeLabelNotEqual = ko.observable('NotEqual');
   self.betTypeText = ko.observable('');
   self.deadline = ko.observable(0);
   self.availableAddresses = ko.observableArray([]);
@@ -42,7 +42,7 @@ function FeedBrowserViewModel() {
   self.currentStep = ko.observable(0);
   self.greenPercent = ko.observable(20);
   self.feedStats = ko.observableArray([]);
-  self.wizardTitle = ko.observable(i18n.t("select_feed"));
+  self.wizardTitle = ko.observable("Select Feed");
   self.selectedTarget = ko.observable(null);
   self.operatorOdds = ko.observable(false);
   self.leverage = ko.observable(LEVERAGE_UNIT);
@@ -80,7 +80,7 @@ function FeedBrowserViewModel() {
     if (!self.feed()) return;
     // pepare bet type labels
     if (self.feed().info_data.type=="all" || self.feed().info_data.type=="binary") {
-      var labelEqual = i18n.t('equal'), labelNotEqual = i18n.t('notequal'), labelTargetValue = i18n.t('target_value') + '=' + val;
+      var labelEqual = 'Equal', labelNotEqual = 'NotEqual', labelTargetValue = 'target_value = '+val;
       if (self.feed().info_data.labels && self.feed().info_data.labels.equal) {
         labelEqual = self.feed().info_data.labels.equal;
         labelNotEqual = self.feed().info_data.labels.not_equal;
@@ -190,17 +190,17 @@ function FeedBrowserViewModel() {
 			  	$('li.next').show();
 			  	$('li.next.finish').hide();
           self.jsonBetProvided(false);
-          self.wizardTitle(i18n.t("select_feed"));
+          self.wizardTitle("Select Feed");
       	} else if (index==1) {
       		$('li.previous').removeClass('disabled');
       		$('li.next').show();
 			  	$('li.next.finish').hide();
-          self.wizardTitle(i18n.t("enter_bet"));
+          self.wizardTitle("Enter Bet");
       	} else if (index==2) {
       		$('li.previous').removeClass('disabled');
   				$('li.next').hide();
   				$('li.next.finish').removeClass('disabled').show();
-          self.wizardTitle(i18n.t("confirm_bet"));
+          self.wizardTitle("Confirm Bet");
       	} else {
       		return false;
       	}
@@ -269,7 +269,7 @@ function FeedBrowserViewModel() {
     
     // labels for cfd
     if (feed.info_data.type=="cfd") {
-      var labelBull = i18n.t('bullish_up'), labelBear = i18n.t('bearish_down');
+      var labelBull = 'Bullish (up)', labelBear = 'Bearish (down)';
       if (feed.info_data.labels && feed.info_data.labels.bull) {
         labelBull = feed.info_data.labels.bull;
         labelBear = feed.info_data.labels.bear;
@@ -308,11 +308,6 @@ function FeedBrowserViewModel() {
     	'open': 'success',
     	'filled': 'primary',
     	'expired': 'danger'
-    };
-    var label_for_status = {
-      'open': i18n.t('open'),
-      'filled': i18n.t('filled'),
-      'expired': i18n.t('expired')
     };
     for (var i in feed.counters.bets) {
     	feed.counters.bets[i].wager_quantity = normalizeQuantity(feed.counters.bets[i].wager_quantity) + ' XCP';
@@ -523,14 +518,8 @@ function FeedBrowserViewModel() {
       leverage: self.leverage()
     }
     var onSuccess = function(txHash, data, endpoint, addressType, armoryUTx) {
-      var message = ""; 
-      if (armoryUTx) {
-        message = "<b>" + i18n.t("bet_will_be_sent", self.wager());
-      } else {
-        message = "<b>" + i18n.t("bet_was_sent", self.wager());
-      }
-      
-      WALLET.showTransactionCompleteDialog(message + " " + i18n.t(ACTION_PENDING_NOTICE), message, armoryUTx);
+      var message = "<b>Your bet " + (armoryUTx ? "will be" : "was") + self.wager() + " sent. ";
+      WALLET.showTransactionCompleteDialog(message + ACTION_PENDING_NOTICE, message, armoryUTx);
     }
     WALLET.doTransaction(self.sourceAddress(), "create_bet", params, onSuccess);
   }
@@ -656,7 +645,7 @@ function OpenBetsViewModel() {
       bet.counterwager_quantity = satoshiToXCP(data.bets[i].counterwager_quantity);
       bet.counterwager_remaining = satoshiToXCP(data.bets[i].counterwager_remaining);
       bet.odds = reduce(data.bets[i].wager_quantity, data.bets[i].counterwager_quantity).join('/');
-      bet.bet_html = i18n.t('bet_type_on_target_value', bet.bet_type, bet.target_value );
+      bet.bet_html = '<b>' + bet.bet_type + '</b> on <b>' + bet.target_value + '</b>';
       bet.tx_hash = data.bets[i].tx_hash;
       bet.tx_index = data.bets[i].tx_index;
       bets.push(bet);
@@ -703,14 +692,8 @@ function OpenBetsViewModel() {
     }
 
     var onSuccess = function(txHash, data, endpoint, addressType, armoryUTx) {
-      var message = ""; 
-      if (armoryUTx) {
-        message = "<b>" + i18n.t("bet_we_be_cancelled", self.wager());
-      } else {
-        message = "<b>" + i18n.t("bet_was_cancelled", self.wager());
-      }
-      
-      WALLET.showTransactionCompleteDialog(message + " " + i18n.t(ACTION_PENDING_NOTICE), message, armoryUTx);
+      var message = "<b>Your bet " + (armoryUTx ? "will be" : "was") + self.wager() + " cancelled. ";
+      WALLET.showTransactionCompleteDialog(message + ACTION_PENDING_NOTICE, message, armoryUTx);
     }
 
     WALLET.doTransaction(bet.address, "create_cancel", params, onSuccess);
@@ -816,12 +799,7 @@ function MatchedBetsViewModel() {
         'pending': 'primary',
         'lose': 'danger'
       };
-      var label_for_status = {
-        'win': i18n.t('win'),
-        'pending': i18n.t('pending'),
-        'lose': i18n.t('lose')
-      };
-      bet.status_html = '<span class="label label-'+classes[bet.status]+'">'+label_for_status[bet.status]+'</span>';
+      bet.status_html = '<span class="label label-'+classes[bet.status]+'">'+bet.status+'</span>';
       bet.id = data_bet.id;
       return bet;
     }

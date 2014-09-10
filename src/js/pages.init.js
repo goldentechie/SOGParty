@@ -1,8 +1,6 @@
 INIT_FUNC = {};
 PROCESSED_BTCPAY = {};
 
-localeInit(initIndex);
-
 function initIndex() { //main page
   window.LOGON_VIEW_MODEL = new LogonViewModel();
   window.LICENSE_MODAL = new LicenseModalViewModel();
@@ -45,10 +43,6 @@ function initIndex() { //main page
     //so that knockout is run on the DOM sections and global context is accessible...
     ko.applyBindings({}, document.getElementById("noticeTestnet"));
     ko.applyBindings({}, document.getElementById("noticeDevMode"));
-    ko.applyBindings({}, document.getElementById("donate"));
-    ko.applyBindings({}, document.getElementById("openChatPane"));
-    ko.applyBindings({}, document.getElementById("logo"));
-    ko.applyBindings({}, document.getElementById("langSelector"));
     
     $('#fullscreen').click(function(e) {
       launchFullscreen(document.documentElement);
@@ -98,10 +92,9 @@ function initIndex() { //main page
     });
     $('#allContentLoading').hide();
     $('#allContent').show();
-
-    $('*[data-toggle=tooltip]').tooltip();
   });
 }
+initIndex(); //call it now, as this script is loaded on index page load
 
 
 function initBalances() {
@@ -169,7 +162,8 @@ function initBalances() {
       //Some misc jquery event handlers
       $('#createAddress, #createWatchOnlyAddress, #createArmoryOfflineAddress').click(function(e) {
         if(WALLET.addresses().length >= MAX_ADDRESSES) {
-          bootbox.alert(i18n.t("max_number_addresses", MAX_ADDRESSES));
+          bootbox.alert("You already have the max number of addresses for a single wallet (<b>"
+            + MAX_ADDRESSES + "</b>). Please create a new wallet (i.e. different passphrase) for more.");
           return false;
         }
 
@@ -217,7 +211,7 @@ function initBalances() {
               break;
             }
             if (needSweep) {
-              bootbox.confirm("<b style='color:red'>" + i18n.t("old_wallet_warning") + "</b>", function(value) {
+              bootbox.confirm("<b style='color:red'>We detected that you have an 'old' wallet with funds present. Press 'OK' to sweep these funds into your new wallet, or Cancel to skip for now.</b>", function(value) {
                 if (value) {
                   SWEEP_MODAL.show(true, true);
                 }
@@ -432,15 +426,3 @@ function initRPS() {
   RPS.init();
 }
 INIT_FUNC['pages/rps.html'] = initRPS;
-
-function initSimpleBuy() {
-  pageSetUp();
-  window.SIMPLE_BUY = new SimpleBuyViewModel();
-  window.VEND_MODAL = new VendingMachineViewModel();
-
-  ko.applyBindings(SIMPLE_BUY, document.getElementById("simplebuy"));
-  ko.applyBindings(VEND_MODAL, document.getElementById("vendModal"));
-
-  SIMPLE_BUY.init();
-}
-INIT_FUNC['pages/simplebuy.html'] = initSimpleBuy;
