@@ -160,6 +160,8 @@ function LogonViewModel() {
       
       // set quote assets
       QUOTE_ASSETS = data['quote_assets']
+
+      QUICK_BUY_ENABLE = data['quick_buy_enable'];
       
       //See if any servers show the wallet as online (this will return the a true result, if any server shows the wallet as online)
       multiAPI("is_wallet_online", {'wallet_id': WALLET.identifier()}, self.onIsWalletOnline);
@@ -167,21 +169,21 @@ function LogonViewModel() {
     },
     function(jqXHR, textStatus, errorThrown, endpoint) {
       var message = describeError(jqXHR, textStatus, errorThrown);
-      bootbox.alert("No counterparty servers are currently available. Please try again later. ERROR: " + message);
+      bootbox.alert(i18n.t("no_counterparty_error", message));
     });
   }
 
   self.onIsWalletOnline = function(isOnline, endpoint) {
     if(isOnline) {
       trackEvent("Login", "Wallet", "IsAlreadyOnline");
-      var message = "<b class='errorColor'>You appear to be logged into Counterwallet elsewhere.</b> It's not safe to be logged into the same wallet account from multiple devices at the same time. If you are sure that this is not the case, press Continue. Otherwise, please press Cancel, logout from your other device, and try again.";
+      var message = i18n.t("multi_connection");
       
       bootbox.dialog({
-        title: "Confirm connection",
+        title: i18n.t("confirm_connection"),
         message: message,
         buttons: {
           "cancel": {
-            label: "Cancel",
+            label: i18n.t("cancel"),
             className: "btn-danger",
             callback: function() {
               bootbox.hideAll();
@@ -190,7 +192,7 @@ function LogonViewModel() {
             }
           },
           "continue": {
-            label: "Continue",
+            label: i18n.t("continue"),
             className: "btn-primary",
             callback: function() {
               multiAPINewest("get_preferences", {
@@ -258,7 +260,6 @@ function LogonViewModel() {
     }
     
     WALLET_OPTIONS_MODAL.selectedTheme(PREFERENCES['selected_theme']);
-    WALLET_OPTIONS_MODAL.selectedLang(PREFERENCES['selected_lang']);
     
     self.displayLicenseIfNecessary(mustSavePreferencesToServer);
   }
@@ -291,7 +292,7 @@ function LogonViewModel() {
   
       if(PREFERENCES.address_aliases[addressHash] === undefined) { //no existing label. we need to set one
         mustSavePreferencesToServer = true; //if not already true
-        PREFERENCES.address_aliases[addressHash] = "My Address #" + (i + 1);
+        PREFERENCES.address_aliases[addressHash] = i18n.t("default_address_label", (i + 1));
       }
 
       $.jqlog.info("Address discovery: Generating address " + len + " of " + PREFERENCES['num_addresses_used']
@@ -343,22 +344,14 @@ function LogonViewModel() {
     //add in the armory and watch only addresses
     var additionalBTCAddresses = [], i = null;
     for(i=0; i < PREFERENCES['armory_offline_addresses'].length; i++) {
-      try {
-        WALLET.addAddress('armory',
-          PREFERENCES['armory_offline_addresses'][i]['address'],
-          PREFERENCES['armory_offline_addresses'][i]['pubkey_hex']);
-        additionalBTCAddresses.push(PREFERENCES['armory_offline_addresses'][i]['address']);
-      } catch(e) {
-        $.jqlog.error("Could not generate armory address: " + e);
-      }
+      WALLET.addAddress('armory',
+        PREFERENCES['armory_offline_addresses'][i]['address'],
+        PREFERENCES['armory_offline_addresses'][i]['pubkey_hex']);
+      additionalBTCAddresses.push(PREFERENCES['armory_offline_addresses'][i]['address']);
     }
     for(i=0; i < PREFERENCES['watch_only_addresses'].length; i++) {
-      try {
-        WALLET.addAddress('watch', PREFERENCES['watch_only_addresses'][i]);
-        additionalBTCAddresses.push(PREFERENCES['watch_only_addresses'][i]);
-      } catch(e) {
-        $.jqlog.error("Could not generate watch only address: " + e);
-      }
+      WALLET.addAddress('watch', PREFERENCES['watch_only_addresses'][i]);
+      additionalBTCAddresses.push(PREFERENCES['watch_only_addresses'][i]);
     }
     
     //store the preferences on the server(s) for future use
@@ -516,7 +509,7 @@ function LogonPasswordModalViewModel() {
     $('#logonPassphaseModal input').keyboard({
       display: {
         'bksp'   :  "\u2190",
-        'accept' : 'Accept',
+        'accept' : i18n.t('accept'),
       },
       layout: 'custom',
       customLayout: {
