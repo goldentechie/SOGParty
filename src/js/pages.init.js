@@ -121,9 +121,7 @@ function initBalances() {
   window.BROADCAST_MODAL = new BroadcastModalViewModel();
   window.SIGN_TRANSACTION_MODAL = new SignTransactionModalViewModel();
   window.ARMORY_BROADCAST_TRANSACTION = new ArmoryBroadcastTransactionModalViewModel();
-
-  ko.applyBindings({}, document.getElementById("balanceHeader"));
-  ko.applyBindings({}, document.getElementById("alertBuyXcp"));
+  
   ko.applyBindings({}, document.getElementById("gettingStartedNotice"));
   ko.applyBindings({}, document.getElementById("pendingBTCPayNotice"));
   ko.applyBindings({}, document.getElementById("oldWalletDetectedNotice"));
@@ -305,6 +303,7 @@ function initStats() {
   ko.applyBindings(STATS_TXN_HISTORY, document.getElementById("wid-id-statsTxnHistory"));
   ko.applyBindings(STATS_HISTORY, document.getElementById("wid-id-statsHistory"));
   ko.applyBindings(STATS_HISTORY, document.getElementById("wid-id-walletHistory"));
+  ko.applyBindings({}, document.getElementById("walletCountStats"));
   
   STATS_HISTORY.init();
   STATS_TXN_HISTORY.init();
