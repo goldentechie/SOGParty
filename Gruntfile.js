@@ -32,9 +32,6 @@ module.exports = function (grunt) {
                     {cwd: 'src/assets/', src: '*', dest: buildDir+'assets/', expand: true}
                 ]
             }
-        },
-        transifex: {
-            languages: ['fr', 'en', 'de']
         }
     }
     /*config['chrome-extension'] = {
@@ -57,5 +54,5 @@ module.exports = function (grunt) {
 
     grunt.loadTasks('grunt-tasks');
 
-    grunt.registerTask('default', ['build', 'transifex']);
+    grunt.registerTask('default', ['build']);
 };

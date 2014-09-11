@@ -84,7 +84,8 @@ function AssetViewModel(props) {
 
   self.send = function () {
     if(self.availableBalance()<=0) { 
-      bootbox.alert(i18n.t("not_available_asset_to_send", self.ASSET, getAddressLabel(self.ADDRESS))); 
+      bootbox.alert("You have no available <b class='notoAssetColor'>" + self.ASSET + "</b>" + 
+                    " at address <b class='notoAddrColor'>" + getAddressLabel(self.ADDRESS) + "</b> to send."); 
       return; 
     }
     if(!WALLET.canDoTransaction(self.ADDRESS)) return false;
@@ -97,7 +98,8 @@ function AssetViewModel(props) {
   
   self.testnetBurn = function () {
     if(!self.availableBalance()) { 
-      bootbox.alert(i18n.t("not_available_asset_to_burn", self.ASSET, getAddressLabel(self.ADDRESS))); 
+      bootbox.alert("You have no available <b class='notoAssetColor'>" + self.ASSET + "</b>" + 
+                    " at address <b class='notoAddrColor'>" + getAddressLabel(self.ADDRESS) + "</b> to burn."); 
       return; 
     }
     if(!WALLET.canDoTransaction(self.ADDRESS)) return false;
@@ -121,18 +123,19 @@ function AssetViewModel(props) {
     if(!WALLET.canDoTransaction(self.ADDRESS)) return false;
     
     bootbox.dialog({
-      message: i18n.t("lock_asset_warning"),
-      title: i18n.t("are_you_sure"),
+      message: "By locking your token, you will not be able to issue more units of it in the future.<br/><br/> \
+        <b class='errorRed'>Please NOTE that this action is irreversable!</b>",
+      title: "Are you sure?",
       buttons: {
         success: {
-          label: i18n.t("cancel"),
+          label: "Cancel",
           className: "btn-default",
           callback: function() {
             //modal will disappear
           }
         },
         danger: {
-          label: i18n.t("lock_token"),
+          label: "Lock Token",
           className: "btn-danger",
           callback: function() {
             //to lock, issue with quantity == 0 and "LOCK" in the description field
@@ -148,13 +151,8 @@ function AssetViewModel(props) {
                 transfer_destination: null
               },
               function(txHash, data, endpoint, addressType, armoryUTx) {
-                var message = i18n.t("no_more_token_may_issued");
-                if (armoryUTx) {
-                  message = i18n.t("token_will_be_locked") + " " + message;
-                } else {
-                  message = i18n.t("token_has_been_locked") + " " + message;
-                }
-                WALLET.showTransactionCompleteDialog(message + " " + i18n.t(ACTION_PENDING_NOTICE), message, armoryUTx);
+                var message = "Your token " + (armoryUTx ? "will be" : "has been") + " locked. No more units of the token may be issued.";
+                WALLET.showTransactionCompleteDialog(message + ACTION_PENDING_NOTICE, message, armoryUTx);
               }
             );
           }
@@ -171,7 +169,7 @@ function AssetViewModel(props) {
   self.call = function() {
     ///////////////////
     //TEMP DISABLE
-    bootbox.alert(i18n.t("callback_temporarily_disabled"));
+    bootbox.alert("Token callbacks are temporarily disabled.");
     return false;
     ///////////////////
     

@@ -160,8 +160,6 @@ function LogonViewModel() {
       
       // set quote assets
       QUOTE_ASSETS = data['quote_assets']
-
-      QUICK_BUY_ENABLE = data['quick_buy_enable'];
       
       //See if any servers show the wallet as online (this will return the a true result, if any server shows the wallet as online)
       multiAPI("is_wallet_online", {'wallet_id': WALLET.identifier()}, self.onIsWalletOnline);
@@ -169,21 +167,21 @@ function LogonViewModel() {
     },
     function(jqXHR, textStatus, errorThrown, endpoint) {
       var message = describeError(jqXHR, textStatus, errorThrown);
-      bootbox.alert(i18n.t("no_counterparty_error", message));
+      bootbox.alert("No counterparty servers are currently available. Please try again later. ERROR: " + message);
     });
   }
 
   self.onIsWalletOnline = function(isOnline, endpoint) {
     if(isOnline) {
       trackEvent("Login", "Wallet", "IsAlreadyOnline");
-      var message = i18n.t("multi_connection");
+      var message = "<b class='errorColor'>You appear to be logged into Counterwallet elsewhere.</b> It's not safe to be logged into the same wallet account from multiple devices at the same time. If you are sure that this is not the case, press Continue. Otherwise, please press Cancel, logout from your other device, and try again.";
       
       bootbox.dialog({
-        title: i18n.t("confirm_connection"),
+        title: "Confirm connection",
         message: message,
         buttons: {
           "cancel": {
-            label: i18n.t("cancel"),
+            label: "Cancel",
             className: "btn-danger",
             callback: function() {
               bootbox.hideAll();
@@ -192,7 +190,7 @@ function LogonViewModel() {
             }
           },
           "continue": {
-            label: i18n.t("continue"),
+            label: "Continue",
             className: "btn-primary",
             callback: function() {
               multiAPINewest("get_preferences", {
@@ -260,6 +258,7 @@ function LogonViewModel() {
     }
     
     WALLET_OPTIONS_MODAL.selectedTheme(PREFERENCES['selected_theme']);
+    WALLET_OPTIONS_MODAL.selectedLang(PREFERENCES['selected_lang']);
     
     self.displayLicenseIfNecessary(mustSavePreferencesToServer);
   }
@@ -279,15 +278,12 @@ function LogonViewModel() {
       WALLET.isOldWallet(WALLET.BITCOIN_WALLET.useOldHierarchicalKey);
       //kick off address generation (we have to take this hacky approach of using setTimeout, otherwise the
       // progress bar does not update correctly through the HD wallet build process....)
-      setTimeout(function() { self.genAddress(mustSavePreferencesToServer, PREFERENCES['num_addresses_used']) }, 1);
+      setTimeout(function() { self.genAddress(mustSavePreferencesToServer) }, 1);
   }
   
-  self.genAddress = function(mustSavePreferencesToServer, addressCount) {
-    
-    var moreAddresses = [];
-
-    for (var i = 0; i < addressCount; i++) {
-
+  self.genAddress = function(mustSavePreferencesToServer) {
+    var moreAddresses = [], i = null;
+    for (i = 0; i < LOGIN_ADDRESS_GEN_BATCH_SIZE; i++) {
       var address = WALLET.addAddress('normal');
       var addressHash = hashToB64(address);
       var len = WALLET.addresses().length;
@@ -295,44 +291,41 @@ function LogonViewModel() {
   
       if(PREFERENCES.address_aliases[addressHash] === undefined) { //no existing label. we need to set one
         mustSavePreferencesToServer = true; //if not already true
-        PREFERENCES.address_aliases[addressHash] = i18n.t("default_address_label", (i + 1));
+        PREFERENCES.address_aliases[addressHash] = "My Address #" + (i + 1);
       }
 
       $.jqlog.info("Address discovery: Generating address " + len + " of " + PREFERENCES['num_addresses_used']
         + " (num_addresses_used) (" + self.walletGenProgressVal() + "%) -- " + address);
-      
       if(len <= PREFERENCES['num_addresses_used']) { //for visual effect
         var progress = len * (100 / PREFERENCES['num_addresses_used']);
         self.walletGenProgressVal(progress);
       }
-
     }
 
+    //if all addresses in the batch are utilized, then generate another batch
     WALLET.refreshBTCBalances(false, moreAddresses, function() {
-      
-      var generateAnotherAddress = false;
-      var totalAddresses = WALLET.addresses().length;
-      var lastAddressWithMovement = WALLET.addresses()[totalAddresses - 1].withMovement();
-
-      if (lastAddressWithMovement) {
-        generateAnotherAddress = true;
-      } else if (totalAddresses > PREFERENCES['num_addresses_used'] && !lastAddressWithMovement) {
-        WALLET.addresses.pop();
+      var generateAnotherBatch = true;
+      for (i = moreAddresses.length - 1; i >= 0; i--) {
+        if(!WALLET.getAddressObj(moreAddresses[i]).withMovement()) { //no movement on this address...remove it
+          if(WALLET.addresses().length > DEFAULT_NUM_ADDRESSES) {
+            $.jqlog.info("Address discovery: Address " + moreAddresses[i] + " unused. Trimming...");
+            WALLET.addresses.pop(); //remove this address
+          } else {
+            $.jqlog.info("Address discovery: Address " + moreAddresses[i] + " unused, but kept as an initial address.");
+          }
+          generateAnotherBatch = false;
+        }
       }
        
-      if (generateAnotherAddress) {
-
-        $.jqlog.info("Address discovery: Generating another address...");
-        setTimeout(function() { self.genAddress(mustSavePreferencesToServer, 1) }, 1);
-
-      } else {
-
+      if(generateAnotherBatch) {
+        $.jqlog.info("Address discovery: Generating another batch of " + LOGIN_ADDRESS_GEN_BATCH_SIZE + " addresses...");
+        setTimeout(function() { self.genAddress(mustSavePreferencesToServer) }, 1);
+      } else { //last used address processed as part of this batch
         if (PREFERENCES['num_addresses_used'] != WALLET.addresses().length) {
           PREFERENCES['num_addresses_used'] = WALLET.addresses().length;
           mustSavePreferencesToServer = true;
         }
         return self.openWalletPt3(mustSavePreferencesToServer);
-
       }
     });
   }
@@ -522,7 +515,7 @@ function LogonPasswordModalViewModel() {
     $('#logonPassphaseModal input').keyboard({
       display: {
         'bksp'   :  "\u2190",
-        'accept' : i18n.t('accept'),
+        'accept' : 'Accept',
       },
       layout: 'custom',
       customLayout: {
