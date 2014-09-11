@@ -1,7 +1,7 @@
 var BuySellAddressInDropdownItemModel = function(address, label, asset, balance) {
   this.ADDRESS = address;
   this.LABEL = label;
-  this.SELECT_LABEL = (label ? ("<b>" + label + "</b><br/>" + address + "<br/>" + asset + " " + i18n.t('bal') + " " + balance) : (address + "<br/>" + asset + " " + i18n.t('bal') + " " + balance));
+  this.SELECT_LABEL = (label ? ("<b>" + label + "</b><br/>" + address + "<br/>" + asset + " Bal: " + balance) : (address + "<br/>" + asset + " Bal: " + balance));
   this.BALANCE = parseFloat(balance);
 };
 
@@ -13,7 +13,7 @@ ko.validation.rules['ordersIsExistingAssetName'] = {
     });
     return match;
   },
-  message: i18n.t("asset_doesnt_exist")
+  message: "Asset doesn't exist."
 };
 ko.validation.registerExtenders();
 
@@ -45,7 +45,7 @@ function ExchangeViewModel() {
       validator: function (val, self) {
         return val !== self.asset1();
       },
-      message: i18n.t('same_as_other_asset'),
+      message: 'Same as other asset',
       params: self
     }    
   });
@@ -219,7 +219,7 @@ function ExchangeViewModel() {
       validator: function (val, self) {
         return parseFloat(val) <= self.availableBalanceForSell();
       },
-      message: i18n.t('quantity_exceeds_balance'),
+      message: 'Amount entered exceeds the address balance.',
       params: self
     }    
   });
@@ -300,14 +300,9 @@ function ExchangeViewModel() {
     var onSuccess = function(txHash, data, endpoint, addressType, armoryUTx) {
       trackEvent('Exchange', 'Sell', self.dispAssetPair());
       
-      var message = "";
-      if (armoryUTx) {
-        message = i18n.t("you_sell_order_will_be_placed", self.sellAmount(), self.baseAsset()); 
-      } else {
-        message = i18n.t("you_sell_order_has_been_placed", self.sellAmount(), self.baseAsset()); 
-      }
-
-      WALLET.showTransactionCompleteDialog(message + " " + i18n.t(ACTION_PENDING_NOTICE), message, armoryUTx);
+      var message = "Your order to sell <b class='notoQuantityColor'>" + self.sellAmount() + "</b>"
+       + " <b class='notoAssetColor'>" + self.baseAsset() + "</b> " + (armoryUTx ? "will be placed" : "has been placed") + ". "; 
+      WALLET.showTransactionCompleteDialog(message + ACTION_PENDING_NOTICE, message, armoryUTx);
        
       //if the order involes selling BTC, then we want to notify the servers of our wallet_id so folks can see if our
       // wallet is "online", in order to determine if we'd be able to best make the necessary BTCpay
@@ -342,18 +337,18 @@ function ExchangeViewModel() {
     estimatedTotalPrice = smartFormat(estimatedTotalPrice);
 
     message  = '<table class="confirmOrderBox">';
-    message += '<tr><td><b>' + i18n.t('price') + ': </b></td><td style="text-align:right">' + self.sellPrice() + '</td><td>' + self.quoteAsset() + '/' + self.baseAsset() + '</td></tr>';
-    message += '<tr><td><b>' + i18n.t('amount') + ': </b></td><td style="text-align:right">' + self.sellAmount() + '</td><td>' + self.baseAsset() + '</td></tr>';
-    message += '<tr><td><b>' + i18n.t('total') + ': </b></td><td style="text-align:right">' + self.sellTotal() + '</td><td>' + self.quoteAsset() + '</td></tr>';
-    message += '<tr><td><b>' + i18n.t('real_estimated_total') + ': </b></td><td style="text-align:right">' + estimatedTotalPrice + '</td><td>' + self.quoteAsset() + '</td></tr>';
+    message += '<tr><td><b>Price: </b></td><td style="text-align:right">' + self.sellPrice() + '</td><td>' + self.quoteAsset() + '/' + self.baseAsset() + '</td></tr>';
+    message += '<tr><td><b>Amount: </b></td><td style="text-align:right">' + self.sellAmount() + '</td><td>' + self.baseAsset() + '</td></tr>';
+    message += '<tr><td><b>Total: </b></td><td style="text-align:right">' + self.sellTotal() + '</td><td>' + self.quoteAsset() + '</td></tr>';
+    message += '<tr><td><b>Real estimated total: </b></td><td style="text-align:right">' + estimatedTotalPrice + '</td><td>' + self.quoteAsset() + '</td></tr>';
     message += '</table>';
 
     bootbox.dialog({
-      title: i18n.t("confirm_your_order"),
+      title: "Confirm your order",
       message: message,
       buttons: {
         "cancel": {
-          label: i18n.t("close"),
+          label: "Close",
           className: "btn-danger",
           callback: function() {
             bootbox.hideAll();
@@ -361,7 +356,7 @@ function ExchangeViewModel() {
           }
         },
         "confirm": {
-          label: i18n.t("confirm_order"),
+          label: "Confirm Order",
           className: "btn-primary",
           callback: function() {
             bootbox.hideAll();
@@ -471,7 +466,7 @@ function ExchangeViewModel() {
       validator: function (val, self) {
         return parseFloat(val) <= self.availableBalanceForBuy();
       },
-      message: i18n.t('quantity_exceeds_balance'),
+      message: 'Amount entered exceeds the address balance.',
       params: self
     }    
   });
@@ -558,14 +553,9 @@ function ExchangeViewModel() {
     var onSuccess = function(txHash, data, endpoint, addressType, armoryUTx) {
       trackEvent('Exchange', 'Buy', self.dispAssetPair());
       
-      var message = "";
-      if (armoryUTx) {
-        message = i18n.t("you_buy_order_will_be_placed", self.buyAmount(), self.baseAsset()); 
-      } else {
-        message = i18n.t("you_buy_order_has_been_placed", self.buyAmount(), self.baseAsset());
-      }
-
-      WALLET.showTransactionCompleteDialog(message + " " + i18n.t(ACTION_PENDING_NOTICE), message, armoryUTx);
+      var message = "Your order to buy <b class='notoQuantityColor'>" + self.buyAmount() + "</b>"
+       + " <b class='notoAssetColor'>" + self.baseAsset() + "</b> " + (armoryUTx ? "will be placed" : "has been placed") + ". "; 
+      WALLET.showTransactionCompleteDialog(message + ACTION_PENDING_NOTICE, message, armoryUTx);
       
       //if the order involes selling BTC, then we want to notify the servers of our wallet_id so folks can see if our
       // wallet is "online", in order to determine if we'd be able to best make the necessary BTCpay
@@ -600,22 +590,22 @@ function ExchangeViewModel() {
     estimatedTotalPrice = smartFormat(estimatedTotalPrice);
 
     message  = '<table class="confirmOrderBox">';
-    message += '<tr><td><b>' + i18n.t('price') + ': </b></td><td style="text-align:right">' + self.buyPrice() + '</td><td>' + self.quoteAsset() + '/' + self.baseAsset() + '</td></tr>';
-    message += '<tr><td><b>' + i18n.t('amount') + ': </b></td><td style="text-align:right">' + self.buyAmount() + '</td><td>' + self.baseAsset() + '</td></tr>';
-    message += '<tr><td><b>' + i18n.t('total') + ': </b></td><td style="text-align:right">' + self.buyTotal() + '</td><td>' + self.quoteAsset() + '</td></tr>';
-    message += '<tr><td><b>' + i18n.t('real_estimated_total') + ': </b></td><td style="text-align:right">' + estimatedTotalPrice + '</td><td>' + self.quoteAsset() + '</td></tr>';
+    message += '<tr><td><b>Price: </b></td><td style="text-align:right">' + self.buyPrice() + '</td><td>' + self.quoteAsset() + '/' + self.baseAsset() + '</td></tr>';
+    message += '<tr><td><b>Amount: </b></td><td style="text-align:right">' + self.buyAmount() + '</td><td>' + self.baseAsset() + '</td></tr>';
+    message += '<tr><td><b>Total: </b></td><td style="text-align:right">' + self.buyTotal() + '</td><td>' + self.quoteAsset() + '</td></tr>';
+    message += '<tr><td><b>Real estimated total: </b></td><td style="text-align:right">' + estimatedTotalPrice + '</td><td>' + self.quoteAsset() + '</td></tr>';
     if (self.quoteAsset() == 'BTC') {
-      message += '<tr><td><b>' + i18n.t('provided_fee') + ': </b></td><td style="text-align:right">' + self.buyFee() + '</td><td>' + self.quoteAsset() + '</td></tr>';
-      message += '<tr><td colspan="3"><i>' + i18n.t('these_fees_are_optional') + '</i></td></tr>';
+      message += '<tr><td><b>Provided fee: </b></td><td style="text-align:right">' + self.buyFee() + '</td><td>' + self.quoteAsset() + '</td></tr>';
+      message += '<tr><td colspan="3"><i>These fees are optional, go directly miners (not to us) and are non-refundable.</i></td></tr>';
     }
     message += '</table>';
 
     bootbox.dialog({
-      title: i18n.t("confirm_your_order"),
+      title: "Confirm your order",
       message: message,
       buttons: {
         "cancel": {
-          label: i18n.t("close"),
+          label: "Close",
           className: "btn-danger",
           callback: function() {
             bootbox.hideAll();
@@ -623,7 +613,7 @@ function ExchangeViewModel() {
           }
         },
         "confirm": {
-          label: i18n.t("confirm_order"),
+          label: "Confirm Order",
           className: "btn-primary",
           callback: function() {
             bootbox.hideAll();
@@ -939,17 +929,17 @@ function ExchangeViewModel() {
   self.cancelOrder = function(order) {
     $.jqlog.debug(order);
 
-    var message = i18n.t('cancel_consume_btc');
+    var message = 'Requests to cancel an order will still consume BTC (necessary to pay the Bitcoin miner fee). To avoid this, let your order expire naturally.';
     if (self.quoteAsset() == 'BTC' && order.type == 'BUY') {
-      message += '<br />' + i18n.t('we_recommend_to_use_xcp');
+      message += '<br />We recommend to use XCP for your next trades! It\'s faster, cheaper, and you don\'t have to stay logged in.';
     }
 
     bootbox.dialog({
-      title: i18n.t("confirm_cancellation_order"),
+      title: "Confirm cancellation order",
       message: message,
       buttons: {
         "cancel": {
-          label: i18n.t("close"),
+          label: "Close",
           className: "btn-danger",
           callback: function() {
             bootbox.hideAll();
@@ -957,7 +947,7 @@ function ExchangeViewModel() {
           }
         },
         "confirm": {
-          label: i18n.t("confirm_cancellation"),
+          label: "Confirm Cancellation",
           className: "btn-primary",
           callback: function() {
             bootbox.hideAll();
@@ -981,8 +971,8 @@ function ExchangeViewModel() {
 
     var onSuccess = function(txHash, data, endpoint, addressType, armoryUTx) {
       trackEvent('Exchange', 'OrderCanceled');
-      WALLET.showTransactionCompleteDialog("<b>" + i18n.t("order_was_cancelled") + "</b> " + i18n.t(ACTION_PENDING_NOTICE),
-        "<b>" + i18n.t("order_will_be_cancelled") + "</b>", armoryUTx);
+      WALLET.showTransactionCompleteDialog("<b>Your order was canceled successfully.</b> " + ACTION_PENDING_NOTICE,
+        "<b>Your order will be cancelled.</b>", armoryUTx);
     }
     
     WALLET.doTransaction(order.source, "create_cancel", params, onSuccess);
@@ -1192,17 +1182,17 @@ function OpenOrdersViewModel() {
   self.cancelOpenOrder = function(order) {
     $.jqlog.debug(order);
 
-    var message = i18n.t('cancel_consume_btc');
+    var message = 'Requests to cancel an order will still consume BTC (necessary to pay the Bitcoin miner fee). To avoid this, let your order expire naturally.';
     if (order.give_quantity_str.indexOf('BTC') != -1) {
-      message += '<br />' + i18n.t('we_recommend_to_use_xcp');
+      message += '<br />We recommend to use XCP for your next trades! It\'s faster, cheaper, and you don\'t have to stay logged in.';
     }
 
     bootbox.dialog({
-      title: i18n.t("confirm_cancellation_order"),
+      title: "Confirm cancellation order",
       message: message,
       buttons: {
         "cancel": {
-          label: i18n.t("close"),
+          label: "Close",
           className: "btn-danger",
           callback: function() {
             bootbox.hideAll();
@@ -1210,7 +1200,7 @@ function OpenOrdersViewModel() {
           }
         },
         "confirm": {
-          label: i18n.t("confirm_cancellation"),
+          label: "Confirm Cancellation",
           className: "btn-primary",
           callback: function() {
             bootbox.hideAll();
@@ -1233,8 +1223,8 @@ function OpenOrdersViewModel() {
 
     var onSuccess = function(txHash, data, endpoint, addressType, armoryUTx) {
       trackEvent('OpenOrders', 'OrderCancelled');
-      WALLET.showTransactionCompleteDialog("<b>" + i18n.t("order_was_cancelled") + "</b> " + i18n.t(ACTION_PENDING_NOTICE),
-        "<b>" + i18n.t("order_will_be_cancelled") + "</b>", armoryUTx);
+      WALLET.showTransactionCompleteDialog("<b>Your order was canceled successfully.</b> " + ACTION_PENDING_NOTICE,
+        "<b>Your order will be cancelled.</b>", armoryUTx);
     }
 
     WALLET.doTransaction(order.source, "create_cancel", params, onSuccess);
@@ -1301,12 +1291,7 @@ function OrderMatchesViewModel() {
         'pending': 'primary',
         'expired': 'danger'
       };
-      var label_for_status = {
-        'completed': i18n.t('completed'),
-        'pending': i18n.t('pending'),
-        'expired': i18n.t('expired')
-      };
-      order_match.status_html = '<span class="label label-'+classes[order_match.status]+'">'+label_for_status[order_match.status]+'</span>';
+      order_match.status_html = '<span class="label label-'+classes[order_match.status]+'">'+order_match.status+'</span>';
 
       order_matches.push(order_match);
     }

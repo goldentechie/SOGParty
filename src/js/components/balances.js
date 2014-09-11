@@ -11,7 +11,7 @@ function ChangeAddressLabelModalViewModel() {
       validator: function (val, self) {
         return val.length <= 75;
       },
-      message: i18n.t('invalid_address_label'),
+      message: 'Invalid label (max 75 characters)',
       params: self
     }    
   });
@@ -67,18 +67,18 @@ function ChangeAddressLabelModalViewModel() {
 
 
 ko.validation.rules['canGetAddressPubKey'] = {
-  async: true,
-  message: i18n.t('cant_find_public_key'),
-  validator: function (val, self, callback) {
-    if(self.addressType() != 'armory') return true; //only necessary for armory offline addresses
-    failoverAPI("get_pubkey_for_address", {'address': val},
-      function(data, endpoint) {
-        self.armoryPubKey(data);
-        return data ? callback(true) : callback(false)
+      async: true,
+      message: 'Can\'t find the public key for this address. Please make a transaction with it and try again.',
+      validator: function (val, self, callback) {
+        if(self.addressType() != 'armory') return true; //only necessary for armory offline addresses
+        failoverAPI("get_pubkey_for_address", {'address': val},
+          function(data, endpoint) {
+            self.armoryPubKey(data);
+            return data ? callback(true) : callback(false)
+          }
+        );   
       }
-    );   
-  }
-};
+    };
 
 function CreateNewAddressModalViewModel() {
   var self = this;
@@ -92,14 +92,14 @@ function CreateNewAddressModalViewModel() {
       validator: function (val, self) {
         return (self.addressType() == 'watch' || self.addressType() == 'armory') ? val : true;
       },
-      message: i18n.t('field_required'),
+      message: 'This field is required.',
       params: self
     },{
       validator: function (val, self) {
         if(!val) return true; //the check above will cover it
         return !WALLET.getAddressObj(val);
       },
-      message: i18n.t('address_already_in_wallet'),
+      message: 'This address is already in your wallet.',
       params: self
     }],
     canGetAddressPubKey: self
@@ -110,7 +110,7 @@ function CreateNewAddressModalViewModel() {
       validator: function (val, self) {
         return val.length <= 70; //arbitrary
       },
-      message: i18n.t('address_desc_too_long'),
+      message: 'Address description is more than 70 characters long.',
       params: self
     }    
   });
@@ -121,8 +121,8 @@ function CreateNewAddressModalViewModel() {
   });
   
   self.dispWindowTitle = ko.computed(function() {
-    return self.addressType() == 'normal' ? i18n.t('create_new_address') : (
-      self.addressType() == 'watch' ? i18n.t('add_watch_address') : i18n.t('add_armory_adress'));
+    return self.addressType() == 'normal' ? 'Create New Address' : (
+      self.addressType() == 'watch' ? 'Add Watch Address' : 'Add Armory Offline Address');
   }, self);
 
   self.resetForm = function() {
@@ -225,7 +225,7 @@ function SendModalViewModel() {
         }
         return true;
       },
-      message: i18n.t('quantity_exceeds_balance'),
+      message: 'Quantity entered exceeds your current balance.',
       params: self
     }   
   });
@@ -292,8 +292,8 @@ function SendModalViewModel() {
         _divisible: self.divisible()
       },
       function(txHash, data, endpoint, addressType, armoryUTx) {
-        var message = "<b>" + (armoryUTx ? i18n.t("will_be_sent") : i18n.t("were_sent")) + " </b>";
-        WALLET.showTransactionCompleteDialog(message + " " + i18n.t(ACTION_PENDING_NOTICE), message, armoryUTx);
+        var message = "<b>Your funds " + (armoryUTx ? "will be" : "were") + " sent. ";
+        WALLET.showTransactionCompleteDialog(message + ACTION_PENDING_NOTICE, message, armoryUTx);
       }
     );
     self.shown(false);
@@ -302,7 +302,8 @@ function SendModalViewModel() {
   
   self.show = function(fromAddress, asset, rawBalance, isDivisible, resetForm) {
     if(asset == 'BTC' && rawBalance == null) {
-      return bootbox.alert(i18n.t("cannot_send_server_unavailable"));
+      return bootbox.alert("Cannot send <b class='notoAssetColor'>BTC</b> right now, as we cannot currently get"
+        + " in touch with the server to get your balance. Please try again later.");
     }
     assert(rawBalance, "Balance is null or undefined?");
     
@@ -332,7 +333,7 @@ var SweepAssetInDropdownItemModel = function(asset, rawBalance, normalizedBalanc
   this.ASSET = asset;
   this.RAW_BALANCE = rawBalance; //raw
   this.NORMALIZED_BALANCE = normalizedBalance; //normalized
-  this.SELECT_LABEL = asset + " (" + i18n.t("bal") + " " + normalizedBalance + ")";
+  this.SELECT_LABEL = asset + " (bal: " + normalizedBalance + ")";
   this.ASSET_INFO = assetInfo;
 };
 
@@ -344,7 +345,7 @@ var privateKeyValidator = function(required) {
       validator: function (val, self) {       
         return (new CWPrivateKey(val)).isValid();
       },
-      message: USE_TESTNET ? i18n.t('not_valid_testnet_pk') : i18n.t('not_valid_pk'),
+      message: 'Not a valid' + (USE_TESTNET ? ' TESTNET ' : ' ') + 'private key.',
       params: self
     }, 
     rateLimit: { timeout: 500, method: "notifyWhenChangesStop" }
@@ -393,7 +394,10 @@ function SweepModalViewModel() {
 
         if  (totalBtcBalanceForSweeep < sweepingCost) {
           
-          this.message = i18n.t("not_able_to_sweep", normalizeQuantity(self.missingBtcForFees), self.addressForPrivateKey());          
+          this.message = "We're not able to sweep all of the tokens you selected. Please send "
+                        + normalizeQuantity(self.missingBtcForFees)
+                        + " BTC transactions to address " + self.addressForPrivateKey() + " and try again."
+                        + " OR use the following fields to pay fees with another address";          
           self.notEnoughBTC(true);
           return false;
 
@@ -575,7 +579,7 @@ function SweepModalViewModel() {
   self.showNextMessage = function(message) {      
     var width = self.sweepingCurrentStep * (100 / self.availableAssetsToSweep().length);
     self.sweepingProgressWidth(width+'%');
-    var message = i18n.t('step_x_of_y_message', self.sweepingCurrentStep, self.availableAssetsToSweep().length, message);
+    var message = "Step "+self.sweepingCurrentStep+"/"+self.availableAssetsToSweep().length+" : "+message;
     self.sweepingProgressionMessage(message);
     $.jqlog.debug(message);
   }
@@ -595,21 +599,21 @@ function SweepModalViewModel() {
     for(var i = 0; i < opsComplete.length; i++) {
       if(opsComplete[i]['result']) {
         if(opsComplete[i]['type'] == 'send') {
-          assetDisplayList.push("<li><b class='notoAssetColor'>" + opsComplete[i]['asset'] + ":</b> " + 
-                        i18n.t('asset_sent_to', opsComplete[i]['normalized_quantity'], opsComplete[i]['asset'], getAddressLabel(opsComplete[i]['to']))+ "</b>" 
-            + "</li>");  
+          assetDisplayList.push("<li><b class='notoAssetColor'>" + opsComplete[i]['asset'] + ":</b> Sent"
+            + " <b class='notoQuantityColor'>" + opsComplete[i]['normalized_quantity'] + "</b>"
+            + " <b class='notoAssetColor'>" + opsComplete[i]['asset'] + "</b>"
+            + " to <b class='notoAddrColor'>" + getAddressLabel(opsComplete[i]['to']) + "</b></li>");  
         } else {
           assert(opsComplete[i]['type'] == 'transferOwnership');
-          assetDisplayList.push("<li><b class='notoAssetColor'>" + opsComplete[i]['asset'] + ":</b> " + 
-                        i18n.t('transferred_ownership', getAddressLabel(opsComplete[i]['to']))+ "</b>" 
-            + "</li>");  
+          assetDisplayList.push("<li><b class='notoAssetColor'>" + opsComplete[i]['asset'] + ":</b> Transferred ownership"
+            + " to <b class='notoAddrColor'>" + getAddressLabel(opsComplete[i]['to']) + "</b></li>");  
         }
       } else {
         if(opsComplete[i]['type'] == 'send') {
-          assetDisplayList.push("<li><b class='notoAssetColor'>" + opsComplete[i]['asset'] + "</b>: " + i18n.t("funds_sent_failure") + "</li>");
+          assetDisplayList.push("<li><b class='notoAssetColor'>" + opsComplete[i]['asset'] + "</b>: Funds not sent due to failure.</li>");
         } else {
           assert(opsComplete[i]['type'] == 'transferOwnership');
-          assetDisplayList.push("<li><b class='notoAssetColor'>" + opsComplete[i]['asset'] + "</b>: " + i18n.t("ownership_transfer_failure") + "</li>");
+          assetDisplayList.push("<li><b class='notoAssetColor'>" + opsComplete[i]['asset'] + "</b>: Ownership not transferred due to failure.</li>");
         }  
       }
     }
@@ -619,8 +623,9 @@ function SweepModalViewModel() {
         self.show(true, true, self.addressForPrivateKey());
       }
     }
-    bootbox.alert(i18n.t("sweep_from_completed", self.addressForPrivateKey()) + "<br/><br/><ul>" + assetDisplayList.join('') + "</ul>"
-      + " " + i18n.t(ACTION_PENDING_NOTICE), alertCallback);
+    bootbox.alert("The sweep from address <b class='notoAddrColor'>" + self.addressForPrivateKey()
+      + "</b> is complete.<br/>Sweep results:<br/><br/><ul>" + assetDisplayList.join('') + "</ul>"
+      + ACTION_PENDING_NOTICE, alertCallback);
   }
   
 
@@ -689,14 +694,15 @@ function SweepModalViewModel() {
         bootbox.alert(arguments[1]);
       } else {
         self.shown(false);
-        bootbox.alert(i18n.t('consensus_error'));
+        bootbox.alert('Consensus Error!');
       }
     }
     var onConsensusError = onTransactionError;
     var onSysError = onTransactionError;
     var onBroadcastError = onTransactionError;
 
-    var message = i18n.t("sending_btc_for_sweeping_fees", normalizeQuantity(self.missingBtcForFees), self.addressForPrivateKeyForFees());
+    var message = "Sending " + normalizeQuantity(self.missingBtcForFees) + " BTC from "
+                  + self.addressForPrivateKeyForFees() + " to pay sweeping fees.";
     self.sweepingProgressionMessage(message);
     $.jqlog.debug(message);
     multiAPIConsensus("create_send", sendData, onTransactionCreated, onConsensusError, onSysError);
@@ -708,7 +714,7 @@ function SweepModalViewModel() {
   self.mergeOutputs = function(key, pubkey, callback, fees) {
     if (self.txoutsCountForPrivateKey>1) {
 
-      var message = i18n.t("peparing_transaction_chaining");
+      var message = "Preparing output for transactions chaining";
       self.sweepingProgressionMessage(message);
       $.jqlog.debug(message);
 
@@ -751,7 +757,7 @@ function SweepModalViewModel() {
           
 
         } else {
-          bootbox.alert(i18n.t('consensus_error'));
+          bootbox.alert('Consensus Error!');
         }
       }
       var onConsensusError = onTransactionError;
@@ -783,7 +789,7 @@ function SweepModalViewModel() {
   self._doTransferAsset = function(selectedAsset, key, pubkey, opsComplete, callback) {
     assert(selectedAsset.ASSET && selectedAsset.ASSET_INFO);
 
-    self.showNextMessage(i18n.t("transferring_asset_from_to", selectedAsset.ASSET, self.addressForPrivateKey(), self.destAddress()));
+    self.showNextMessage("Transferring asset " + selectedAsset.ASSET + " from " + self.addressForPrivateKey() + " to " + self.destAddress());
     
     var transferData = {
       source: self.addressForPrivateKey(),
@@ -883,8 +889,8 @@ function SweepModalViewModel() {
       }
     }
 
-    self.showNextMessage(i18n.t('sweeping_x_assets_from_to', 
-      normalizedQuantity, selectedAsset.ASSET, self.addressForPrivateKey(), self.destAddress()));
+    self.showNextMessage("Sweeping " + normalizedQuantity + " " + selectedAsset.ASSET + " from "
+      + self.addressForPrivateKey() + " to " + self.destAddress());
       
     //dont use WALLET.doTransaction for this...
     var sendData = {
@@ -1158,19 +1164,19 @@ function TestnetBurnModalViewModel() {
       validator: function (val, self) {
         return parseFloat(val) > 0 && parseFloat(val) <= 1;
       },
-      message: i18n.t('quantity_must_be_between_0_and_1'),
+      message: 'Quantity entered must be between 0 and 1 BTC.',
       params: self
     },{
       validator: function (val, self) {
         return parseFloat(val) <= WALLET.getBalance(self.address(), 'BTC') - normalizeQuantity(MIN_FEE);
       },
-      message: i18n.t('quantity_of_exceeds_balance', 'BTC'),
+      message: 'The quantity of BTC entered exceeds your available balance.',
       params: self
     },{
       validator: function (val, self) {
         return !(parseFloat(val) > 1 - self.btcAlreadyBurned());
       },
-      message: i18n.t('you_can_only_burn'),
+      message: 'You can only burn <b>1 BTC</b> total for any given address. Even over multiple burns, the total quantity must be less than <b>1 BTC</b>.',
       params: self
     }]
   });
@@ -1215,13 +1221,11 @@ function TestnetBurnModalViewModel() {
       function(txHash, data, endpoint, addressType, armoryUTx) {
         self.shown(false);
 
-        var message;
-        if (armoryUTx) {
-          message = i18n.t("you_will_be_burning", self.btcBurnQuantity(), self.quantityXCPToBeCreated());
-        } else {
-          message = i18n.t("you_have_burned", self.btcBurnQuantity(), self.quantityXCPToBeCreated());
-        }
-        WALLET.showTransactionCompleteDialog(message + " " + i18n.t(ACTION_PENDING_NOTICE), message, armoryUTx);
+        var message = "You " + (armoryUTx ? "will be burning" : "have burned") + " <b class='notoQuantityColor'>" + self.btcBurnQuantity() + "</b>"
+          + " <b class='notoAssetColor'>BTC</b> for approximately"
+          + " <b class='notoQuantityColor'>" + self.quantityXCPToBeCreated() + "</b>"
+          + " <b class='notoAssetColor'>XCP</b>. ";
+        WALLET.showTransactionCompleteDialog(message + ACTION_PENDING_NOTICE, message, armoryUTx);
       }
     );
     trackEvent('Balances', 'TestnetBurn');
@@ -1363,8 +1367,8 @@ function BroadcastModalViewModel() {
     
     var onSuccess = function(txHash, data, endpoint, addressType, armoryUTx) {
       self.hide();
-      WALLET.showTransactionCompleteDialog(i18n.t("broadcast_transmitted") + " " + i18n.t(ACTION_PENDING_NOTICE),
-        i18n.t("broadcast_to_be_transmitted"), armoryUTx);
+      WALLET.showTransactionCompleteDialog("Broadcast transmitted. " + ACTION_PENDING_NOTICE,
+        "Broadcast to be transmitted", armoryUTx);
     }
 
     var onError = function(jqXHR, textStatus, errorThrown, endpoint) {
@@ -1434,7 +1438,7 @@ function SignTransactionModalViewModel() {
     if (self.validTx()) {
       var onSuccess = function(txHash, endpoint) {
         self.shown(false);
-        bootbox.alert(i18n.t("your_tx_broadcast_success") + "<br /><br /><b>"+txHash+"</b>");
+        bootbox.alert("Your transaction were broacasted successfully:<br /><br /><b>"+txHash+"</b>");
       }
 
       WALLET.broadcastSignedTx(self.signedTx(), onSuccess, defaultErrorHandler);
@@ -1484,7 +1488,7 @@ function ArmoryBroadcastTransactionModalViewModel() {
   self.doAction = function() {
     var onSuccess = function(txHash, data, endpoint, addressType, armoryUTx) {
       self.hide();
-      var message = i18n.t("your_tx_broadcast_success") + "<br /><br /><b>"+txHash+"</b>";
+      var message = "<b>Transaction broadcast successfully!</b><br/><br/>Transaction ID: " + txHash;
       WALLET.showTransactionCompleteDialog(message, message, armoryUTx);
     }
     

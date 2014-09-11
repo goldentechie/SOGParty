@@ -12,15 +12,15 @@ function ChatLineViewModel(handle, text, is_op, is_private) {
     // handle), as it is passed through knockouts html: filter.
     if(self.HANDLE) {
       if(self.IS_OP) {
-        return "<span class='chatLineOpEmote'>" + self.HANDLE + (self.IS_PRIVATE ? '(' + i18n.t('private') + ')' : '') + ":</span>&nbsp;&nbsp;";  
+        return "<span class='chatLineOpEmote'>" + self.HANDLE + (self.IS_PRIVATE ? '(PRIVATE)' : '') + ":</span>&nbsp;&nbsp;";  
       } else if(self.HANDLE == CHAT_FEED.handle()) {
         return "<span class='chatLineSelfEmote'>" + self.HANDLE + ":</span>&nbsp;&nbsp;";  
       } else {
-        return "<span class='chatLineEmote'>" + self.HANDLE + (self.IS_PRIVATE ? '(' + i18n.t('private') + ')' : '') + ":</span>&nbsp;&nbsp;";  
+        return "<span class='chatLineEmote'>" + self.HANDLE + (self.IS_PRIVATE ? '(PRIVATE)' : '') + ":</span>&nbsp;&nbsp;";  
       }
     } else { //system
       assert(self.HANDLE === null);
-      return "<span class='chatLineSystem'>" + i18n.t('system') + ":</span>&nbsp;&nbsp;";
+      return "<span class='chatLineSystem'>SYSTEM:</span>&nbsp;&nbsp;";
     }
   }, self);
 }
@@ -44,7 +44,7 @@ function ChatFeedViewModel() {
   self.lastSetWalletIDAttempt = null;
 
   self.headerText = ko.computed(function(){
-    var header = "<b>" + i18n.t("chatbox") + "</b>";
+    var header = "<b>Chatbox</b>";
     if(self.handle() && self.isOp()) header += " (<span class='chatLineOpEmote'>" + self.handle() + "</span>)"; 
     if(self.handle() && !self.isOp()) header += " (<span class='chatLineSelfEmote'>" + self.handle() + "</span>)";
     return header; 
@@ -90,7 +90,7 @@ function ChatFeedViewModel() {
     //As all users are connected to every chat feed (at least currently), this should return an accurate number
     //If total numbers of servers in the backends list > # servers the client connects to, this will no longer be the case
     //Also, go with the highest number reported back...
-    _multiAPIPrimative("get_num_users_online", {}, function(results) {
+    multiAPIPrimative("get_num_users_online", {}, function(results) {
       var numUsersOnline = 0;
       for(var i=0; i < results.length; i++) {
         if(results[i]['success']) {
@@ -126,7 +126,7 @@ function ChatFeedViewModel() {
     //Collapse chat window
     $('#main').animate({marginRight : "0px"}, {duration: 600, queue: false, complete: function() {
       $('body').append($("div.openChatPane"));
-      $("div.openChatPane").html(i18n.t('chat'));
+      $("div.openChatPane").html('CHAT')
     }});
     $('#chatPane').hide('slide', {direction:'right', queue: false}, 600);
   }
@@ -212,41 +212,29 @@ function ChatFeedViewModel() {
     socket.on('oped', function (op_handle, handle) {
       if(num != self._firstAvailableChatServer) return; //prevent multiple repeated actions
       if(handle == self.handle()) self.isOp(true);
-      self.addLine(null, i18n.t('op_has_oped_user', op_handle, handle), null, null);
+      self.addLine(null, op_handle + " has oped " + handle, null, null);
     });
     socket.on('unoped', function (op_handle, handle) {
       if(num != self._firstAvailableChatServer) return; //prevent multiple repeated actions
       if(handle == self.handle()) self.isOp(false);
-      self.addLine(null, i18n.t('op_has_unoped_user', op_handle, handle), null, null);
+      self.addLine(null, op_handle + " has unoped " + handle, null, null);
     });
     socket.on('banned', function (op_handle, handle, time, until_ts) {
       if(num != self._firstAvailableChatServer) return; //prevent multiple repeated actions
-      var message = "";
-      if (time == -1) {
-        message = i18n.t('op_has_banned_permanently_user', op_handle, handle);
-      } else {
-        message = i18n.t('op_has_banned_user', op_handle, handle, time);
-      }
-      self.addLine(null, message, null, null);
+      self.addLine(null, op_handle + " has banned " + handle + (time == -1 ? " permanently ^_^" : (" for " + time + " seconds")), null, null);
     });
     socket.on('unbanned', function (op_handle, handle) {
       if(num != self._firstAvailableChatServer) return; //prevent multiple repeated actions
-      self.addLine(null, i18n.t('op_has_unbanned_user', op_handle, handle), null, null);
+      self.addLine(null, op_handle + " has unbanned " + handle, null, null);
     });
     socket.on('handle_changed', function (op_handle, old_handle, new_handle) {
       if(num != self._firstAvailableChatServer) return; //prevent multiple repeated actions
       if(old_handle == self.handle()) self.handle(new_handle);
-      self.addLine(null, i18n.t('op_change_username', op_handle, old_handle, new_handle), null, null);
+      self.addLine(null, op_handle + " has changed the chat handle for " + old_handle + " to " + new_handle, null, null);
     });
     socket.on('online_status', function (handle, is_online) { //response to /online command
       if(num != self._firstAvailableChatServer) return; //prevent multiple repeated actions
-      var message = "";
-      if (is_online) {
-        message = i18n.t('user_is_online', handle);
-      } else {
-        message = i18n.t('user_is_not_online', handle);
-      }
-      self.addLine(null, message, null, null);
+      self.addLine(null, handle + (is_online ? " is online" : " is not online"), null, null);
     });
     socket.on('error', function (error_name, error_message) {
       $.jqlog.debug("chat.error(feed-"+num+"): " + error_name + " -- " + error_message);
@@ -259,7 +247,7 @@ function ChatFeedViewModel() {
             self.lastSetWalletIDAttempt = (new Date).getTime() / 1000;
             if(num == self._firstAvailableChatServer) {
               self.addLine(null,
-                i18n.t("lost_chat_feed_link"), null, null);  
+                "Lost chat feed link and attempted to correct. Please try sending your chat line again.", null, null);  
             }
           });
         }
@@ -437,7 +425,7 @@ function ChatFeedViewModel() {
 
 ko.validation.rules['handleIsNotInUse'] = {
   async: true,
-  message: i18n.t('handle_already_used'),
+  message: 'Handle is already in use',
   validator: function (val, self, callback) {
     failoverAPI("is_chat_handle_in_use",  {'handle': val},
       function(isInUse, endpoint) {
@@ -453,7 +441,7 @@ ko.validation.rules['isValidHandle'] = {
     validator: function (val, self) {
       return val.match(/[A-Za-z0-9_-]{4,12}/g);
     },
-    message: i18n.t("invalid_handle")
+    message: "Invalid handle, must be between 4 and 12 characters with only alphanumeric, underscore or hyphen allowed."
 };
 ko.validation.registerExtenders();
 
