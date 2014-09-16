@@ -414,7 +414,9 @@ function LicenseModalViewModel() {
     self.shown(true);
     
     //Load in the license file text into the textarea
-    $("#licenseAgreementText").val(i18n.t('license'));
+    $.get( "pages/license.html", function( data ) {
+      $("#licenseAgreementText").val(data);
+    });
   }
 
   self.hide = function() {

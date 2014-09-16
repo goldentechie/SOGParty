@@ -283,7 +283,6 @@ function initHistory() {
   
   ko.applyBindings(TXN_HISTORY, document.getElementById("wid-id-txnHistory"));
   ko.applyBindings(BALANCE_HISTORY, document.getElementById("wid-id-balHistory"));
-  ko.applyBindings({}, document.getElementById("historyHeader"));
   
   BALANCE_HISTORY.init();
   TXN_HISTORY.init();
@@ -322,7 +321,6 @@ function initLeaderboard() {
   
   ko.applyBindings(ASSET_LEADERBOARD, document.getElementById("leaderboardMarketBar"));
   ko.applyBindings(ASSET_LEADERBOARD, document.getElementsByClassName("leaderboardGrid")[0]);
-  ko.applyBindings({}, document.getElementById("leaderboardTitle"));
   
   ASSET_LEADERBOARD.init();
   
@@ -365,7 +363,6 @@ function initPortfolio() {
   
   ko.applyBindings(ASSET_PORTFOLIO, document.getElementById("portfolioMarketBar"));
   ko.applyBindings(ASSET_PORTFOLIO, document.getElementsByClassName("portfolioGrid")[0]);
-  ko.applyBindings({}, document.getElementById("portofolioHeader"));
   
   $(window).bind("resize", ASSET_PORTFOLIO.dataTableResponsive);
   $(window).on('hashchange', function() {
