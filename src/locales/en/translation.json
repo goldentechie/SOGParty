@@ -465,7 +465,6 @@
 
   "pending_notice": "<b><u>This action will take some time to complete</u></b>, and will appear as a Pending Action until confirmed on the network. <b class='errorColor'>Until that time, the wallet will not reflect the change. Please be patient.</b>",
 
-  "exit_warning": "If you log out, any Bitcoin sell orders you have open will probably not be filled.",
   "brower_not_supported_header": "Your browser is not supported with Counterwallet",
   "brower_not_supported_text": "Counterwallet's security features require a newer browser than what you are using. We recommend Chrome for the best user experience. Also, note that Microsoft Internet Explorer is not supported due to it's lack of full support for Content-Security-Policy restrictions.",
 
@@ -510,7 +509,7 @@
   "buy": "buy",
   "sell": "sell",
   "you_have_no_in_wallet": "You have no %s in your Wallet",
-  "quick_by_notice": "Please note that Counterparty does not operate the vending machine services provided on this page, and is not responsible for the quality of services provided through their use. If you have any issues with these 3rd party services, please contact them directly for support. By using the vending machine services on this page, you make the following delaration: 'I confirm, represent and warrant that I am not a U.S. Person (as defined in Regulation S promulgated under the Securities Act of 1933 (United States)'",
+  "quick_by_notice": "Please note that Counterparty does not operate the vending machine services provided on this page, and is not responsible for the quality of services provided through their use. If you have any issues with these 3rd party services, please contact them directly for support.",
   "support": "Support",
   "quick_by_confirm_message": "You are choosing to send <span class=\"sellColor\">%s %s</span> to <b>%s</b>. You will receive <span class=\"sellColor\">%s %s</span>.",
   "there_is_no_reserve": "The reserve is empty, please retry later.",
@@ -683,8 +682,8 @@
   "create_issue_token": "Create (Issue) a Token",
   "old_wallet_detected": "<strong>Old Wallet detected:</strong> We see you are using an old wallet. Please transfer your funds to a newly created wallet as soon as possible. Support for 'old' wallets will be discontinued <b>July 15, 2014</b>.",
   "old_wallet_more_info": "More info",
-  "want_to_buy_xcp": "<b>Want to buy XCP?</b> Beyond using the decentralized exchange in Counterwallet, other options for purchasing XCP are <a href=\"http://counterparty.io/get-started/#get-xcp\" target=\"_blank\">listed here</a>.",
-  "want_to_buy_xcp_with_quick_buy": "The easiest way to buy XCP is to use <a href=\"#pages/simplebuy.html\">Quick Buy</a> in Counterwallet. For traditional exchanges, <a href=\"http://counterparty.io/get-started/#get-xcp\" target=\"_blank\">click here</a>.",
+  "want_to_buy_xcp": "<b>Want to buy XCP?</b> Provided that it is legal in your jurisdiction, the easiest way to buy XCP is from one of the centralized exchanges listed <a href=\"http://coinmarketcap.com/currencies/counterparty/#markets\" target=\"_blank\">here</a>.",
+  "want_to_buy_xcp_with_quick_buy": "<b>Want to buy XCP?</b> Provided that it is legal in your jurisdiction, the easiest way to buy XCP is from one of the centralized exchanges listed <a href=\"http://coinmarketcap.com/currencies/counterparty/#markets\" target=\"_blank\">here</a>.",
   "enter_new_label": "Enter the new label (or, nickname) for your address <b class=\"notoAddressColor\">%s</b>.",
   "after_sending": "After sending, you will have <b><span class=\"sellColor\">%s</span> <span class=\"sellColor\">%s</span> remaining</b> at this address (minus fees).",
   "sign_a_message": "Sign a Message",
@@ -868,7 +867,7 @@
   "highest_bid_price": "Highest bid price",
 
   "diligence_is_advised": "Warning and Disclaimer: <b>Every</b> Counterparty asset can be viewed on the \"Markets\" page. The hosts of Counterwallet.io and Counterwallet.co <b>do not filter</b> very likely scam or fraudulent assets, and explicitly disclaim any responsibility therefor. Caveat emptor: do your own diligence, and do not invest more than you can afford to lose.",
-
+  "btc_trading_off": "Trading to or from BTC is no longer possible in Counterwallet. Click <a href=\"http://support.counterparty.io/support/solutions/articles/5000500845-why-can-i-no-longer-trade-to-and-from-btc-in-counterwallet-\" target=\"_blank\">here</a> to learn why.",
   "must_be_valid_testnet_address": "This field must be a valid TESTNET Bitcoin address.",
   "must_be_valid_bitcoin_address": "This field must be a valid Bitcoin address.",
   "must_be_whole_number": "The quantity entered must be a whole number, since this is a non-divisible asset.",
