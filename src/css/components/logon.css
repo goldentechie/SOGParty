@@ -15,7 +15,7 @@
 }
 
 #form-well {
-    max-width: 650px;
+    max-width: 610px;
     margin: 0 auto;
     padding-bottom: 0px;
 }
@@ -37,11 +37,11 @@
 }
 
 #form-well .btn-success {
-  min-width: 250px;
+  width: 250px;
 }
 
 #walletLoginButton {
-  min-width: 70%;
+  width: 70%;
 }
 
 #secureKeyboardButton {
