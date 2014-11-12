@@ -95,7 +95,7 @@ function createSharedKnockoutValidators() {
 
   ko.validation.rules['isValidBitcoinAddress'] = {
       validator: function (val, self) {
-          return CWBitcore.isValidAddress(val) || CWBitcore.isValidMultisigAddress(val);
+          return CWBitcore.isValidAddress(val);
       },
       message: USE_TESTNET ? i18n.t('must_be_valid_testnet_address') : i18n.t('must_be_valid_bitcoin_address')
   };
@@ -104,7 +104,7 @@ function createSharedKnockoutValidators() {
       validator: function (val, self) {
           try {
             if(!val) return true; //the "if specified" part of the name :)
-            return CWBitcore.isValidAddress(val) || CWBitcore.isValidMultisigAddress(val);
+            return CWBitcore.isValidAddress(val);
           } catch (err) {
             return false;
           }
@@ -171,7 +171,7 @@ function createSharedKnockoutValidators() {
         } else if (val.indexOf('http://') == 0 || val.indexOf('https://') == 0) {
           return isValidURL(val);
         } else {
-          return CWBitcore.isValidAddress(val) || CWBitcore.isValidMultisigAddress(val);
+          return CWBitcore.isValidAddress(val);
         }   
       },
       message: i18n.t('must_be_url_or_address')
