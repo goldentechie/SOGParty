@@ -57,6 +57,8 @@ function localeInit(callback) {
     callback();
     createSharedKnockoutValidators();
   });
+  $('head').append('<script src="locales/' + LANG + '/timeago.js"></script>');
+  
   localStorage.setItem("LANG", LANG);
 }
 

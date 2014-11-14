@@ -95,7 +95,7 @@ function createSharedKnockoutValidators() {
 
   ko.validation.rules['isValidBitcoinAddress'] = {
       validator: function (val, self) {
-          return CWBitcore.isValidAddress(val) || CWBitcore.isValidMultisigAddress(val);
+          return CWBitcore.isValidAddress(val);
       },
       message: USE_TESTNET ? i18n.t('must_be_valid_testnet_address') : i18n.t('must_be_valid_bitcoin_address')
   };
@@ -104,11 +104,7 @@ function createSharedKnockoutValidators() {
       validator: function (val, self) {
           try {
             if(!val) return true; //the "if specified" part of the name :)
-            if(self.addressType() == 'multisig') {
-              return CWBitcore.isValidMultisigAddress(val)
-            } else {
-              return CWBitcore.isValidAddress(val);
-            }
+            return CWBitcore.isValidAddress(val);
           } catch (err) {
             return false;
           }
@@ -175,7 +171,7 @@ function createSharedKnockoutValidators() {
         } else if (val.indexOf('http://') == 0 || val.indexOf('https://') == 0) {
           return isValidURL(val);
         } else {
-          return CWBitcore.isValidAddress(val) || CWBitcore.isValidMultisigAddress(val);
+          return CWBitcore.isValidAddress(val);
         }   
       },
       message: i18n.t('must_be_url_or_address')
@@ -185,31 +181,18 @@ function createSharedKnockoutValidators() {
     async: true,
     message: i18n.t('cant_find_public_key'),
     validator: function (val, self, callback) {
-      if (self.addressType() == 'armory' || self.addressType() == 'multisig') {
-        failoverAPI("get_pubkey_for_address", {'address': val},
-          function(data, endpoint) {
-            if (data) {
-              if (self.addressType() == 'armory') {
-                self.armoryPubKey(data[0]);
-                return callback(true)
-              } else if (self.addressType() == 'multisig') {
-                if (data.length == val.split("_").length - 2) {
-                  return callback(true);
-                } else {
-                  return callback(false);
-                }
-              }
-            } else {
-              return callback(false);
-            }
-          }
-        );
-      } else {
-        return true; 
-      }
+      if(self.addressType() != 'armory') return true; //only necessary for armory offline addresses
+      failoverAPI("get_pubkey_for_address", {'address': val},
+        function(data, endpoint) {
+          self.armoryPubKey(data);
+          return data ? callback(true) : callback(false)
+        }
+      );   
     }
   };
+
   ko.validation.registerExtenders();
+
 }
 
 //Bootstrap 3 button toggle group handler: http://stackoverflow.com/a/20080917 (with FIX)

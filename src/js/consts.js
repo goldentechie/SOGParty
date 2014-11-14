@@ -37,7 +37,6 @@ var DEFAULT_PREFERENCES = {
   'selected_lang': 'en-us',
   'watch_only_addresses': [],
   'armory_offline_addresses': [],
-  'multisig_addresses': [],
   'has_accepted_license': false
 };
 
