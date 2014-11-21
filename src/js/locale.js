@@ -58,6 +58,7 @@ function localeInit(callback) {
     createSharedKnockoutValidators();
     initDateTimePicker(options.lng);
   });
+  switchTimeagoLocale(LANG);  
   localStorage.setItem("LANG", LANG);
 }
 
