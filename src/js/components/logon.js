@@ -265,8 +265,9 @@ function LogonViewModel() {
       }
       mustSavePreferencesToServer = true;
     }
-    PREFERENCES['num_addresses_used'] = Math.min(MAX_ADDRESSES, PREFERENCES['num_addresses_used']);
     
+    PREFERENCES['num_addresses_used'] = Math.min(MAX_ADDRESSES, PREFERENCES['num_addresses_used']);
+
     WALLET_OPTIONS_MODAL.selectedTheme(PREFERENCES['selected_theme']);
     
     self.displayLicenseIfNecessary(mustSavePreferencesToServer);
@@ -372,14 +373,6 @@ function LogonViewModel() {
         additionalBTCAddresses.push(PREFERENCES['watch_only_addresses'][i]);
       } catch(e) {
         $.jqlog.error("Could not generate watch only address: " + e);
-      }
-    }
-    for(i=0; i < PREFERENCES['multisig_addresses'].length; i++) {
-      try {
-        WALLET.addAddress('multisig', PREFERENCES['multisig_addresses'][i]);
-        additionalBTCAddresses.push(PREFERENCES['multisig_addresses'][i]);
-      } catch(e) {
-        $.jqlog.error("Could not generate multisig only address: " + e);
       }
     }
     

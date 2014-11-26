@@ -293,9 +293,7 @@ PendingActionFeedViewModel.modifyBalancePendingFlag = function(category, data, f
     } else if (!assetObj) {
       //updateUnconfirmedBalance(data['source'], data['asset'], data['quantity'], null, data);
       // issuance fee
-      if (data['asset'].substring(0, 1) != 'A') {
-        updateUnconfirmedBalance(data['source'], 'XCP', -ASSET_CREATION_FEE_XCP * UNIT);
-      }
+      updateUnconfirmedBalance(data['source'], 'XCP', -ASSET_CREATION_FEE_XCP * UNIT);
     }
 
   } else if (category == 'dividend') {
