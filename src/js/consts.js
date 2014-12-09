@@ -11,7 +11,6 @@ var MAX_ADDRESSES = 20; //arbitrary (but will generate more on login if they hav
 
 //Order expiration
 var ORDER_DEFAULT_EXPIRATION = 1000; //num blocks until expiration (at ~9 min per block this is ~6.75 days)
-var ORDER_BTCSELL_DEFAULT_EXPIRATION = 2000; //num blocks until expiration for selling BTC order
 var ORDER_MAX_EXPIRATION = 3000; //max expiration for order
 
 var STATS_MAX_NUM_TRANSACTIONS = 100; //max # transactions to show in the table
@@ -23,8 +22,6 @@ var VIEW_PRICES_LATEST_TRADES_REFRESH_EVERY = 5 * 60 * 1000; //refresh latest tr
 var MARKET_INFO_REFRESH_EVERY = 5 * 60 * 1000; //refresh market info every 5 minutes while enabled (on buy/sell page, and view prices page) 
 
 var CHAT_NUM_USERS_ONLINE_REFRESH_EVERY = 5 * 60 * 1000; //refresh online user count every 5 minutes while enabled
-
-var NUM_BLOCKS_TO_WAIT_FOR_BTCPAY = 6; //number of blocks to wait until the user can make a BTCpay on an order match where they owe BTC
 
 var ALLOW_UNCONFIRMED_INPUTS = true;  // allow use unconfirmed unspents
 
@@ -40,9 +37,12 @@ var DEFAULT_PREFERENCES = {
   'selected_lang': 'en-us',
   'watch_only_addresses': [],
   'armory_offline_addresses': [],
-  'auto_btcpay': true, //default to auto BTC payments being enabled
+  'multisig_addresses': [],
   'has_accepted_license': false
 };
+
+var NUMERIC_ASSET_ID_MIN = bigInt(26).pow(12).add(1);
+var NUMERIC_ASSET_ID_MAX = bigInt(256).pow(8);
 
 /***********
  * DYNAMICALLY SET
@@ -70,10 +70,17 @@ var RESTRICTED_AREA = {
   'pages/openbets.html': ['US'],
   'pages/matchedbets.html': ['US'],
   'pages/rps.html': ['US'],
-  'dividend': ['US']
+  'dividend': ['US'],
+  'pages/simplebuy.html': ['US']
+}
+
+var RESTRICTED_AREA_MESSAGE = {
+  'pages/simplebuy.html': 'buy_xcp_if_legal'
 }
 
 var MAX_SUPPORT_CASE_PROBLEM_LEN = 4096;
 var QUOTE_ASSETS = []; // initalized with counterblock is_ready()
 
 var QUICK_BUY_ENABLE = false;
+var BETTING_ENABLE = true;
+var GAMING_ENABLE = true;

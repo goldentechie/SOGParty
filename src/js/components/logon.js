@@ -158,6 +158,12 @@ function LogonViewModel() {
 
       // set user country
       USER_COUNTRY = data['country'];
+      if (RESTRICTED_AREA['pages/betting.html'].indexOf(USER_COUNTRY) != -1) {
+        BETTING_ENABLE = false;
+      }
+      if (RESTRICTED_AREA['pages/rps.html'].indexOf(USER_COUNTRY) != -1) {
+        GAMING_ENABLE = false;
+      }
       
       // set quote assets
       QUOTE_ASSETS = data['quote_assets']
@@ -259,9 +265,8 @@ function LogonViewModel() {
       }
       mustSavePreferencesToServer = true;
     }
-    
     PREFERENCES['num_addresses_used'] = Math.min(MAX_ADDRESSES, PREFERENCES['num_addresses_used']);
-
+    
     WALLET_OPTIONS_MODAL.selectedTheme(PREFERENCES['selected_theme']);
     
     self.displayLicenseIfNecessary(mustSavePreferencesToServer);
@@ -369,6 +374,14 @@ function LogonViewModel() {
         $.jqlog.error("Could not generate watch only address: " + e);
       }
     }
+    for(i=0; i < PREFERENCES['multisig_addresses'].length; i++) {
+      try {
+        WALLET.addAddress('multisig', PREFERENCES['multisig_addresses'][i]);
+        additionalBTCAddresses.push(PREFERENCES['multisig_addresses'][i]);
+      } catch(e) {
+        $.jqlog.error("Could not generate multisig only address: " + e);
+      }
+    }
     
     //store the preferences on the server(s) for future use
     if(mustSavePreferencesToServer) {
@@ -387,11 +400,7 @@ function LogonViewModel() {
     $('#left-panel').show();
     $('#main').show();
 
-    PENDING_ACTION_FEED.restoreFromLocalStorage(function() {
-      //load the waiting btc feed after the pending action feed is all done loading, as we look at the pending action
-      // feed to determine whether a btcpay process is in progress (pending) or not
-      WAITING_BTCPAY_FEED.restore();   
-    });
+    PENDING_ACTION_FEED.restoreFromLocalStorage(function() {});
     MESSAGE_FEED.restoreOrder();
     MESSAGE_FEED.resolvePendingRpsMatches();
 
