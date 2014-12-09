@@ -87,10 +87,6 @@ function checkCountry(action, callback) {
     
     var message = i18n.t('forbiden_country');
 
-    if (action in RESTRICTED_AREA_MESSAGE) {
-      message += '<br />' + i18n.t(RESTRICTED_AREA_MESSAGE[action]);
-    }
-
     if(USE_TESTNET) { //allow the user to bust on through this alert on testnet
       bootbox.dialog({
         title: i18n.t("country_warning"),
@@ -132,16 +128,4 @@ function checkCountry(action, callback) {
   } else {
     callback();
   }
-}
-
-function orderMultisigAddress(address) {
-  var addresse_array = address.split('_');
-  if (addresse_array.length > 1) {
-    var required_sig = addresse_array.shift();
-    var provided_sig = addresse_array.pop();
-    return required_sig + '_' + addresse_array.sort().join("_") + '_' + provided_sig;
-  } else {
-    return addresse_array.pop();
-  }
-  
 }

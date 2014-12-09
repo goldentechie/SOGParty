@@ -1,17 +1,62 @@
+ko.validation.rules['assetNameIsTaken'] = {
+  async: true,
+  message: i18n.t('token_already_exists'),
+  validator: function (val, self, callback) {
+    failoverAPI("get_issuances",
+      {'filters': {'field': 'asset', 'op': '==', 'value': val}, 'status': 'valid'},
+      function(data, endpoint) {
+        return data.length ? callback(false) : callback(true) //empty list -> true (valid = true)
+      }
+    );   
+  }
+};
+// TODO: DRY!!
+ko.validation.rules['assetNameExists'] = {
+  async: true,
+  message: i18n.t('token_dont_exists'),
+  validator: function (val, self, callback) {
+    failoverAPI("get_issuances", {'filters': {'field': 'asset', 'op': '==', 'value': val}, 'status': 'valid'},
+      function(data, endpoint) {
+        $.jqlog.debug("Asset exists: " + data.length);
+        return data.length ? callback(true) : callback(false) //empty list -> false (valid = false)
+      }
+    );   
+  }
+};
+ko.validation.rules['isValidAssetNameLength'] = {
+    validator: function (val, self) {
+      //Check length
+      var n = 0;
+      for(var i=0; i < val.length; i++) {
+        n *= 26;
+        assert(B26_DIGITS.indexOf(val[i]) != -1); //should have been checked already
+        n += B26_DIGITS.indexOf(val[i]); 
+      }
+      assert(n >= Math.pow(26, 3)); //should have been checked already
+      return n <= MAX_INT;
+    },
+    message: i18n.t('asset_length_invalid')
+};
+ko.validation.rules['isValidAssetDescription'] = {
+    validator: function (val, self) {
+      return byteCount(val) <= MAX_ASSET_DESC_LENGTH;
+    },
+    message: i18n.t('token_desc_too_long', MAX_ASSET_DESC_LENGTH)
+};
+ko.validation.registerExtenders();
+
 function CreateAssetModalViewModel() {
   var self = this;
   self.shown = ko.observable(false);
   self.address = ko.observable('');
 
-  self.tokenNameType = ko.observable('alphabetic');
-  self.tokenNameType.subscribe(function(val) {
-    if (val == 'numeric') self.generateRandomId();
-    else if (val == 'alphabetic') self.name('');
-  });
-  
   self.name = ko.observable('').extend({
     required: true,
-    isValidAssetName: self,
+    pattern: {
+      message: i18n.t("token_name_rules"),
+      params: '^[B-Z][A-Z]{3,}$'
+    },
+    isValidAssetNameLength: self,
     assetNameIsTaken: self
   });
   self.description = ko.observable('').extend({
@@ -25,7 +70,7 @@ function CreateAssetModalViewModel() {
     isValidQtyForDivisibility: self
   });
   self.callable = ko.observable(false);
-  self.callDate = ko.observable().extend({
+  self.callDate = ko.observable(new Date(new Date().getTime() + 30*24*60*60*1000)).extend({
     //^ default to current date + 30 days for now (also serves to hide a bug with the required
     // field validation not working if this field is empty). This is temporary...
     date: true,
@@ -49,11 +94,6 @@ function CreateAssetModalViewModel() {
     callDate: self.callDate,
     callPrice: self.callPrice
   });  
-
-  self.generateRandomId = function() {
-    var r = bigInt.randBetween(NUMERIC_ASSET_ID_MIN, NUMERIC_ASSET_ID_MAX);
-    self.name('A' + r);
-  }
 
   self.resetForm = function() {
     self.name('');
@@ -101,7 +141,7 @@ function CreateAssetModalViewModel() {
         divisible: self.divisible(),
         description: self.description(),
         callable_: self.callable(),
-        call_date: self.callable() ? parseInt(new Date(self.callDate()).getTime() / 1000) : null, //epoch ts
+        call_date: self.callable() ? parseInt(self.callDate().getTime() / 1000) : null, //epoch ts
         call_price: self.callable() ? parseFloat(self.callPrice()) : null, //float
         transfer_destination: null
       },
@@ -113,11 +153,8 @@ function CreateAssetModalViewModel() {
           message = i18n.t("token_has_been_created", self.name());
         }
         message +=  "<br/><br/>";
-        if (self.tokenNameType() == 'alphabetic') {
-          message += i18n.t("issuance_end_message", getAddressLabel(self.address()), ASSET_CREATION_FEE_XCP);
-        } else {
-          message += i18n.t("free_issuance_end_message");
-        }
+        message += i18n.t("issuance_end_message", getAddressLabel(self.address()), ASSET_CREATION_FEE_XCP);
+
         WALLET.showTransactionCompleteDialog(message + " " + i18n.t(ACTION_PENDING_NOTICE), message, armoryUTx);
       }
     );
@@ -402,7 +439,6 @@ function PayDividendModalViewModel() {
   self.shown = ko.observable(false);
   self.addressVM = ko.observable(null); // SOURCE address view model(supplied)
   self.assetData = ko.observable(null);
-  self.holderCount = ko.observable(null);
   
   self.assetName = ko.observable('').extend({
     required: true,
@@ -433,25 +469,13 @@ function PayDividendModalViewModel() {
   self.assetName.subscribe(function(name) {
     if (!name) return;
     failoverAPI("get_asset_info", {'assets': [name]}, function(assetsData, endpoint) {
-      if (USE_TESTNET || WALLET.networkBlockHeight() > 330000) {
-        failoverAPI('get_holder_count', {'asset':name}, function(holderData) {
-          self.assetData(assetsData[0]);
-          self.holderCount(holderData[name]);
-        });
-      } else {
-        self.assetData(assetsData[0]);
-        self.holderCount(0);
-      }
+      self.assetData(assetsData[0]);
     });
   });
   
   self.availableDividendAssets = ko.observableArray([]);
   self.selectedDividendAsset = ko.observable(null).extend({ //dividends are paid IN (i.e. with) this asset
     required: true
-  });
-  self.selectedDividendAssetDivisibility =  ko.observableArray(null);
-  self.selectedDividendAsset.subscribe(function(asset) {
-    self.selectedDividendAssetDivisibility(WALLET.isAssetDivisibilityAvailable(asset) == 0 ? false : true); // asset divisibility should be available..
   });
   
   self.quantityPerUnit = ko.observable('').extend({
@@ -463,17 +487,6 @@ function PayDividendModalViewModel() {
         return self.dividendAssetBalRemainingPostPay() >= 0;
       },
       message: i18n.t('total_diviend_exceed_balance'),
-      params: self
-    }, {
-      validator: function (val, self) {
-        if (!self.selectedDividendAsset()) return true;
-        if (!self.selectedDividendAssetDivisibility()) {
-          return parseFloat(val) % 1 == 0;
-        } else {
-          return true;
-        }
-      },
-      message: i18n.t('nodivisible_amount_incorrect'),
       params: self
     }]
   });
@@ -492,22 +505,9 @@ function PayDividendModalViewModel() {
     return Decimal.round(totalPay, 8, Decimal.MidpointRounding.ToEven).toFloat();
 
   }, self);
-
-  self.totalFee = ko.computed(function() {
-    if(!self.holderCount() || !isNumber(self.quantityPerUnit()) || !parseFloat(self.quantityPerUnit())) return null;
-    if (USE_TESTNET || WALLET.networkBlockHeight() > 330000) {
-      return mulFloat(self.holderCount(), DIVIDEND_FEE_PER_HOLDER);
-    } else {
-      return 0;
-    }
-  });
   
   self.dispTotalPay = ko.computed(function() {
     return smartFormat(self.totalPay());
-  }, self);
-
-  self.dispTotalFee= ko.computed(function() {
-    return smartFormat(self.totalFee());
   }, self);
 
   self.dividendAssetBalance = ko.computed(function() {
