@@ -20,7 +20,7 @@
                 <a id="createWatchOnlyAddress" data-type="watch" href="#" data-bind="locale: 'create_watch_address'"></a>
             </li>
             <li>
-                <a id="createMultisigAddress" data-type="multisig" href="#" data-bind="locale: 'create_multisig_address'"></a>
+                <a id="createMultisigAddress" data-type="multisig" href="#" data-bind="visible: USE_TESTNET, locale: 'create_multisig_address'"></a>
             </li>
         </ul>
     </div>
@@ -519,7 +519,7 @@
                 <div class="note" data-bind="locale: 'for_address_note'"></div>
             </div>
           </div></section>
-          <section><div class="row">
+          <section data-bind="visible: USE_TESTNET"><div class="row">
             <label class="control-label col col-sm-2" data-bind="locale: 'token_name_type'"></label>
             <div class="col col-sm-10">
               <label class="radio">
