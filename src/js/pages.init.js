@@ -1,6 +1,6 @@
 INIT_FUNC = {};
 
-loadLocaleConfig(initIndex);
+localeInit(initIndex);
 
 function initIndex() { //main page
   window.LOGON_VIEW_MODEL = new LogonViewModel();

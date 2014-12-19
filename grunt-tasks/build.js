@@ -375,7 +375,6 @@ module.exports = function(grunt) {
     grunt.registerMultiTask('build', 'Build app', function() {
 
         var config = this.options(defaultOptions);        
-        var homePath = (process.env['HOME'] + '/') || (process.env['USERPROFILE'] + '/') || './';
 
         if (this.target=='process') { 
 
@@ -415,8 +414,7 @@ module.exports = function(grunt) {
             });
             grunt.task.run('copy');
 
-            if (grunt.file.exists(homePath + '.transifex'))
-                grunt.task.run('transifex');
+            grunt.task.run('transifex');
             
         }
         
