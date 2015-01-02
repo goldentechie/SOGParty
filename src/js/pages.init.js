@@ -1,6 +1,7 @@
 INIT_FUNC = {};
+PROCESSED_BTCPAY = {};
 
-loadLocaleConfig(initIndex);
+localeInit(initIndex);
 
 function initIndex() { //main page
   window.LOGON_VIEW_MODEL = new LogonViewModel();
@@ -15,6 +16,10 @@ function initIndex() { //main page
   window.CHAT_FEED = new ChatFeedViewModel();
   window.CHAT_SET_HANDLE_MODAL = new ChatSetHandleModalViewModel();
   window.PENDING_ACTION_FEED = new PendingActionFeedViewModel();
+  
+  window.UPCOMING_BTCPAY_FEED = new UpcomingBTCPayFeedViewModel();
+  window.WAITING_BTCPAY_FEED = new WaitingBTCPayFeedViewModel();
+  window.BTCPAY_FEED = new BTCPayFeedViewModel();
   
   window.NOTIFICATION_FEED = new NotificationFeedViewModel();
   
@@ -31,6 +36,7 @@ function initIndex() { //main page
     ko.applyBindings(CHAT_FEED, document.getElementById("chatPane"));
     ko.applyBindings(CHAT_SET_HANDLE_MODAL, document.getElementById("chatSetHandleModal"));
     ko.applyBindings(PENDING_ACTION_FEED, document.getElementById("pendingActionFeed"));
+    ko.applyBindings(BTCPAY_FEED, document.getElementById("btcPayFeed"));
     ko.applyBindings(NOTIFICATION_FEED, document.getElementById("notificationFeed"));        
     ko.applyBindings(SUPPORT_MODAL, document.getElementById("supportModal"));
     ko.applyBindings(DONATE_MODAL, document.getElementById("donateModal"));
@@ -119,6 +125,7 @@ function initBalances() {
   ko.applyBindings({}, document.getElementById("balanceHeader"));
   ko.applyBindings({}, document.getElementById("alertBuyXcp"));
   ko.applyBindings({}, document.getElementById("gettingStartedNotice"));
+  ko.applyBindings({}, document.getElementById("pendingBTCPayNotice"));
   ko.applyBindings({}, document.getElementById("oldWalletDetectedNotice"));
   ko.applyBindings(CHANGE_ADDRESS_LABEL_MODAL, document.getElementById("changeAddressLabelModal"));
   ko.applyBindings(CREATE_NEW_ADDRESS_MODAL, document.getElementById("createNewAddressModal"));
@@ -135,6 +142,7 @@ function initBalances() {
     ko.applyBindings({
       FEATURE_EXCHANGE: disabledFeatures.indexOf('exchange') == -1,
       FEATURE_BETTING: disabledFeatures.indexOf('betting') == -1,
+      FEATURE_RPS: disabledFeatures.indexOf('rps') == -1,
       FEATURE_HISTORY: disabledFeatures.indexOf('history') == -1,
       FEATURE_PORTFOLIO: disabledFeatures.indexOf('portfolio') == -1,
       FEATURE_LEADERBOARD: disabledFeatures.indexOf('leaderboard') == -1,
@@ -148,6 +156,7 @@ function initBalances() {
   window.TRANSFER_ASSET_MODAL = new TransferAssetModalViewModel();
   window.CHANGE_ASSET_DESCRIPTION_MODAL = new ChangeAssetDescriptionModalViewModel();
   window.PAY_DIVIDEND_MODAL = new PayDividendModalViewModel();
+  window.CALL_ASSET_MODAL = new CallAssetModalViewModel();
   window.SHOW_ASSET_INFO_MODAL = new ShowAssetInfoModalViewModel();
   
   ko.applyBindings(CREATE_ASSET_MODAL, document.getElementById("createAssetModal"));
@@ -155,17 +164,22 @@ function initBalances() {
   ko.applyBindings(TRANSFER_ASSET_MODAL, document.getElementById("transferAssetModal"));
   ko.applyBindings(CHANGE_ASSET_DESCRIPTION_MODAL, document.getElementById("changeAssetDescriptionModal"));
   ko.applyBindings(PAY_DIVIDEND_MODAL, document.getElementById("payDividendModal"));
+  ko.applyBindings(CALL_ASSET_MODAL, document.getElementById("callAssetModal"));
   ko.applyBindings(SHOW_ASSET_INFO_MODAL, document.getElementById("showAssetInfoModal"));
   
   $(document).ready(function() {
       //Some misc jquery event handlers
-      $('#createAddress, #createWatchOnlyAddress, #createArmoryOfflineAddress, #createMultisigAddress').click(function(e) {
+      $('#createAddress, #createWatchOnlyAddress, #createArmoryOfflineAddress').click(function(e) {
         if(WALLET.addresses().length >= MAX_ADDRESSES) {
           bootbox.alert(i18n.t("max_number_addresses", MAX_ADDRESSES));
           return false;
         }
 
-        addressType = $(this).attr('data-type');
+        var addressType = 'normal';        
+        if($(this).attr('id') == 'createWatchOnlyAddress')
+          addressType = 'watch'; 
+        else if($(this).attr('id') == 'createArmoryOfflineAddress')
+          addressType = 'armory'; 
         CREATE_NEW_ADDRESS_MODAL.show(addressType);
         e.preventDefault(); //prevent the location hash from changing
       });
@@ -241,6 +255,13 @@ function initBalances() {
 }
 INIT_FUNC['pages/balances.html'] = initBalances;
 
+function initFeedBTCPays() {
+  ko.applyBindings(WAITING_BTCPAY_FEED, document.getElementById("waitingBTCPayFeedContent"));
+  ko.applyBindings(UPCOMING_BTCPAY_FEED, document.getElementById("upcomingBTCPayFeedContent"));
+}
+INIT_FUNC['pages/feed_btcpays.html'] = initFeedBTCPays;
+
+
 function initFeedNotifications() {
   ko.applyBindings(NOTIFICATION_FEED, document.getElementById("notificationFeedContent"));
 }
@@ -274,6 +295,7 @@ function initHistory() {
 }
 INIT_FUNC['pages/history.html'] = initHistory;
 
+
 function initStats() {
   pageSetUp(); //init smartadmin featureset
   
@@ -290,6 +312,7 @@ function initStats() {
   STATS_TXN_HISTORY.init();
 }
 INIT_FUNC['pages/stats.html'] = initStats;
+
 
 function initLeaderboard() {
   pageSetUp(); //init smartadmin featureset
@@ -406,6 +429,15 @@ function initOrderMatches() {
   ORDER_MATCHES.init();
 }
 INIT_FUNC['pages/ordermatches.html'] = initOrderMatches;
+
+function initRPS() {
+  pageSetUp();
+  window.RPS = new RpsViewModel();
+  ko.applyBindings(RPS, document.getElementById("rps"));
+
+  RPS.init();
+}
+INIT_FUNC['pages/rps.html'] = initRPS;
 
 function initSimpleBuy() {
   pageSetUp();

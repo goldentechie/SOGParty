@@ -13,6 +13,9 @@ function AssetViewModel(props) {
   self.SUPPLY = normalizeQuantity(self.rawSupply(), self.DIVISIBLE);
   self.holdersSupply = self.rawSupply() - self.rawBalance();
   self.description = ko.observable(props['description'] || '');
+  self.CALLABLE = props['callable'] !== undefined ? props['callable'] : false;
+  self.CALLDATE = props['callDate'] || null;
+  self.CALLPRICE = props['callPrice'] || null;
   
   self.balanceChangePending = ko.observable(false);
   //^ if/when set to true, will highlight the balance to show that a balance change is pending
@@ -49,6 +52,10 @@ function AssetViewModel(props) {
     return smartFormat(self.normalizedTotalIssued()); 
   }, self);
   
+  self.dispCallDate = ko.computed(function() {
+    if(!self.CALLDATE) return null;
+    return moment(self.CALLDATE * 1000).format("MMM Do YYYY, h:mm:ss a");
+  }, self);
 
   self.unconfirmedBalance = ko.observable(0);
   self.unconfirmedBalance.subscribe(function(value) {
@@ -72,7 +79,7 @@ function AssetViewModel(props) {
   }, self);
   
   self.dispBalancePadding = ko.computed(function() {
-    return self.locked() ? '20px' : '0px';    
+    return self.locked() && self.CALLABLE ? '40px' : (self.locked() || self.CALLABLE ? '20px' : '0px');    
   }, self);
 
   self.send = function () {
@@ -135,6 +142,9 @@ function AssetViewModel(props) {
                 asset: self.ASSET,
                 divisible: self.DIVISIBLE,
                 description: 'LOCK',
+                callable_: self.CALLABLE,
+                call_date: self.CALLDATE ? self.CALLDATE : null,
+                call_price: self.CALLPRICE ? self.CALLPRICE : null,
                 transfer_destination: null
               },
               function(txHash, data, endpoint, addressType, armoryUTx) {
@@ -158,4 +168,14 @@ function AssetViewModel(props) {
     CHANGE_ASSET_DESCRIPTION_MODAL.show(self.ADDRESS, self);
   };
   
+  self.call = function() {
+    ///////////////////
+    //TEMP DISABLE
+    bootbox.alert(i18n.t("callback_temporarily_disabled"));
+    return false;
+    ///////////////////
+    
+    if(!WALLET.canDoTransaction(self.ADDRESS)) return false;
+    CALL_ASSET_MODAL.show(self.ADDRESS, self.ASSET);
+  }
 }
