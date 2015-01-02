@@ -1,23 +1,24 @@
 
-function AddressViewModel(type, key, address, initialLabel, armoryPubKey) {
+function AddressViewModel(type, key, address, initialLabel, pubKeys) {
   //An address on a wallet
   //type is one of: normal, watch, armory
-  assert(['normal', 'watch', 'armory'].indexOf(type) != -1);
-  assert((type == 'normal' && key) || (type == 'watch' && !key) || (type == 'armory' && !key));
-  assert((type == 'armory' && armoryPubKey) || !armoryPubKey); //only used with armory addresses
+  assert(['normal', 'watch', 'armory', 'multisig'].indexOf(type) != -1);
+  assert((type == 'normal' && key) || (type == 'watch' && !key) || (type == 'armory' && !key) || type == 'multisig');
+  assert((type == 'multisig' && pubKeys) || (type == 'armory' && pubKeys) || !pubKeys); //only used with armory addresses
 
   var self = this;
   
   self.KEY = key; //  key : the HierarchicalKey bitcore object
   self.TYPE = type;
   self.ADDRESS = address;
-  self.PUBKEY = type == 'armory' ? armoryPubKey : (key ? key.getPub() : ''); //hex string
+  self.PUBKEY = (type == 'armory' || type == 'multisig') ? pubKeys : (key ? key.getPub() : ''); //hex string
 
   //Accessors for ease of use in templates...
   self.FEATURE_DIVIDEND = disabledFeatures.indexOf('dividend') == -1;
   self.IS_NORMAL = (type == 'normal');
   self.IS_WATCH_ONLY = (type == 'watch');
   self.IS_ARMORY_OFFLINE = (type == 'armory');
+  self.IS_MULTISIG_ADDRESS = (type == 'multisig');
 
   self.lastSort = ko.observable('');
   self.lastSortDirection = ko.observable('');
@@ -51,7 +52,25 @@ function AddressViewModel(type, key, address, initialLabel, armoryPubKey) {
       });      
     }
   }, self);
+
+  self.multisigType = ko.computed(function(){
+    if (!self.IS_MULTISIG_ADDRESS) return null;
+    var array = self.ADDRESS.split("_");
+    return array.shift() + "/" + array.pop();
+  });
   
+  self.dispAddress = ko.computed(function(){
+    if (!self.IS_MULTISIG_ADDRESS) return self.ADDRESS;
+    var addresses = self.ADDRESS.split("_");
+    addresses.shift();
+    addresses.pop();
+    var shortAddresses = [];
+    ko.utils.arrayForEach(addresses, function(address) {
+      shortAddresses.push(address.substring(0, 5) + '...' + address.substring(address.length - 5, address.length));
+    });
+    return shortAddresses.join(", ");
+  });
+
   self.getAssetObj = function(asset) {
     //given an asset string, return a reference to the cooresponding AssetViewModel object
     return ko.utils.arrayFirst(self.assets(), function(a) {
@@ -132,10 +151,7 @@ function AddressViewModel(type, key, address, initialLabel, armoryPubKey) {
         locked: assetInfo['locked'],
         rawBalance: initialRawBalance,
         rawSupply: assetInfo['supply'] || assetInfo['quantity'],
-        description: assetInfo['description'], 
-        callable: assetInfo['callable'],
-        callDate: assetInfo['call_date'],
-        callPrice: assetInfo['call_price'],
+        description: assetInfo['description'],
         rawEscrowedBalance: escrowedBalance,
         escrowedBalance: normalizeQuantity(escrowedBalance, assetInfo['divisible'])
       };
@@ -210,16 +226,19 @@ function AddressViewModel(type, key, address, initialLabel, armoryPubKey) {
   }
   
   self.remove = function() { //possible for watch only addresses only
-    assert(self.TYPE != 'normal', 'Only watch-only or armory addresses can be removed.');
     WALLET.addresses.remove(self);
     
     //update the preferences with this address removed
-    if(self.TYPE === 'watch') {
+    if (self.TYPE === 'watch') {
       PREFERENCES['watch_only_addresses']= _.without(PREFERENCES['watch_only_addresses'], self.ADDRESS);  
-    } else {
-      assert(self.TYPE === 'armory');
+    } else if (self.TYPE === 'armory') {
       PREFERENCES['armory_offline_addresses'] = _.filter(PREFERENCES['armory_offline_addresses'], 
         function (el) { return el.address !== self.ADDRESS; });
+    } else if (self.TYPE === 'multisig') {
+      PREFERENCES['multisig_addresses'] = _.filter(PREFERENCES['multisig_addresses'], 
+        function (el) { return el.address !== self.ADDRESS; });
+    } else if (self.TYPE === 'normal') {
+      PREFERENCES['num_addresses_used'] -= 1;
     }
     
     WALLET.storePreferences(function() {

@@ -36,7 +36,6 @@
     <link rel="stylesheet" type="text/css" media="screen" href="css/components/balances.css">
     <link rel="stylesheet" type="text/css" media="screen" href="css/components/exchange.css">
     <link rel="stylesheet" type="text/css" media="screen" href="css/components/betting.css">
-    <link rel="stylesheet" type="text/css" media="screen" href="css/components/rps.css">
     <link rel="stylesheet" type="text/css" media="screen" href="css/components/simplebuy.css">
     <!-- endbuild -->
 
@@ -102,17 +101,6 @@
               <h2 data-bind="locale: 'pending_actions'"></h2>
               <div class="ajax-notifications custom-scroll"></div> <!-- notification content -->
               <span><b data-bind="locale: 'last_updated'"></b> <span id="pendingActionLastUpdated" data-bind="timeago: lastUpdated()"></span></span> <!-- footer -->
-            </div> <!-- .ajax-dropdown -->
-        </span>
-
-        <span id="btcPayFeed" data-bind="fadeVisible: dispCount()" class="activity-parent" data-contenturl="pages/feed_btcpays.html">
-            <span class="activity-dropdown">
-                <i class="fa fa-btc"></i><b data-bind="text: dispCount()" class="badge badge-error"></b>
-            </span>
-            <div class="ajax-dropdown">
-              <h2 data-bind="locale: 'required_btc_pays'"></h2>
-              <div class="ajax-notifications custom-scroll"></div> <!-- notification content -->
-              <span><b data-bind="locale: 'last_updated'"></b> <span id="pendingBtcPayLastUpdated" data-bind="timeago: dispLastUpdated()"></span></span> <!-- footer -->
             </div> <!-- .ajax-dropdown -->
         </span>
 
@@ -212,18 +200,6 @@
               <li>
                 <a href="pages/matchedbets.html">
                   <i class="fa fa-lg fa-fw fa-book"></i> <span data-bind="locale: 'my_bet_history'"></span>
-                </a>
-              </li>
-            </ul>
-          </li>
-          <li class="" data-bind="visible: FEATURE_RPS && GAMING_ENABLE">
-            <a href="#">
-              <i class="fa fa-lg fa-fw fa-trophy"></i> <span class="menu-item-parent" data-bind="locale: 'gaming'"></span>
-            </a>
-            <ul>
-              <li>
-                <a href="pages/rps.html">
-                  <i class="fa-lg fa-fw glyphicon glyphicon-hand-right"></i> <span data-bind="locale: 'rock_paper_scissors'"></span>
                 </a>
               </li>
             </ul>
@@ -388,7 +364,7 @@
                   <input id="passwordDecrypt" data-bind="value: passwordDecrypt, valueUpdate: 'input', localeAttr: {'placeholder': 'enter_quick_password'}" class="form-control" type="password" name="passwordDecrypt">
                 </div>
 
-                <div class="col-sm-4">
+                <div class="col-sm-4" style="white-space:nowrap">
                   <button id="walletLoginButton" data-bind="click: openWallet, enable: isPassphraseValid(), css: { 'btn-primary': isPassphraseValid() }, locale: 'open_wallet'" type="button" class="btn btn-default" disabled></button>
                   &nbsp;<button id="secureKeyboardButton" data-bind="click: showSecureKeyboard, enable: !isPassphraseValid(), css: { 'btn-primary': !isPassphraseValid() }" type="button" class="btn btn-default" disabled><i class="fa fa-keyboard-o"></i></button>
                   <div class="showSupport"><a href="#" data-bind="locale: 'login_problems'"></a></div>
@@ -584,65 +560,7 @@
                 </fieldset>
               </form>
               <form class="smart-form">
-                <fieldset data-bind="visible: showAdvancedOptions">
-                  <section>
-                    <div class="row">
-                      <div class="col col-sm-2" data-bind="locale: 'auto_btcpay'"></div>
-                      <div class="col col-sm-10">
-                        <label class="checkbox">
-                          <input name="autoBTCPayEnabled" type="checkbox" data-bind="checked: autoBTCPayEnabled">
-                          <span data-bind="locale: 'enable_auto_btcpay'"></span>
-                        </label>
-                        <div class="note" data-bind="locale: 'enable_auto_btcpay_desc'">
-                          
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-                </fieldset>
-                <fieldset data-bind="visible: showAdvancedOptions">
-                  <section>
-                    <div class="row">
-                      <div class="col col-sm-12">
-                        <div class="note advancedWarn txt-color-red" data-bind="locale: 'advanced_options_warning'"></div>
-                      </div>
-                  </section>
-                </fieldset>
-
-                <fieldset data-bind="visible: showAdvancedOptions">
-                  <section>
-                    <div class="row">
-                      <div class="col col-sm-6">
-                        <label class="label" data-bind="locale: 'default_fee_provided'"></label>
-                        <label class="input"> <i class="icon-append">%</i>
-                          <input class="prefFieldPercent" name="defaultBTCFeeProvidedPct" type="text" data-bind="value: defaultBTCFeeProvidedPct">
-                        </label>
-                      </div>
-                      <div class="col col-sm-6">
-                        <label class="label" data-bind="locale: 'fee_provided_filter'"></label>
-                        <label class="input"> <i class="icon-append">%</i>
-                          <input class="prefFieldPercent" name="minBTCFeeProvidedPct" type="text" data-bind="value: minBTCFeeProvidedPct">
-                        </label>
-                      </div>
-                    </div>
-                  </section>
-                  <section>
-                    <div class="row">
-                      <div class="col col-sm-6">
-                        <label class="label" data-bind="locale: 'default_fee_required'"></label>
-                        <label class="input"> <i class="icon-append">%</i>
-                          <input class="prefFieldPercent" name="defaultBTCFeeRequiredPct" type="text" data-bind="value: defaultBTCFeeRequiredPct">
-                        </label>
-                      </div>
-                      <div class="col col-sm-6">
-                        <label class="label" data-bind="locale: 'fee_required_filter'"></label>
-                        <label class="input"> <i class="icon-append">%</i>
-                          <input class="prefFieldPercent" name="maxBTCFeeRequiredPct" type="text" data-bind="value: maxBTCFeeRequiredPct">
-                        </label>
-                      </div>
-                    </div>
-                  </section>
-                </fieldset>
+                
                 <fieldset data-bind="visible: showAdvancedOptions">
                   <section>
                     <div class="row">
@@ -652,13 +570,6 @@
                           <input class="text-right" name="orderDefaultExpiration" type="text" data-bind="value: orderDefaultExpiration">
                         </label>
                         <div class="note" data-bind="locale: 'default_expiration_desc'"></div>
-                      </div>
-                      <div class="col col-sm-6">
-                        <label class="label" data-bind="locale: 'default_expiration_btc'"></label>
-                        <label class="input">
-                          <input class="text-right" name="orderBTCSellDefaultExpiration" type="text" data-bind="value: orderBTCSellDefaultExpiration">
-                        </label>
-                        <div class="note" data-bind="locale: 'default_expiration_btc_desc'"></div>
                       </div>
                     </div>
                   </section>
@@ -1008,6 +919,7 @@
     <script src="vendors/sprintf/dist/sprintf.min.js"></script>
     <script src="vendors/i18next/i18next.min.js"></script>
 
+    <script src="vendors/big-integer/BigInteger.min.js"></script>
     <!-- endbuild -->
 
 
@@ -1027,6 +939,7 @@
 
     <!-- counterwallet-specific -->
     <script src="js/util.knockout.js"></script>
+    <script src="js/jquery-timeago.i18n.js"></script>
     <script src="js/locale.js"></script>
     <script src="js/consts.js"></script>
     <script src="js/util.js"></script>
@@ -1041,7 +954,6 @@
     <script src="js/components/misc.js"></script>
     <script src="js/components/feed_notifications.js"></script>
     <script src="js/components/feed_pending_actions.js"></script>
-    <script src="js/components/feed_btcpays.js"></script>
     <script src="js/components/chatfeed.js"></script>
     <script src="js/components/balances.js"></script>
     <script src="js/components/balances_assets.js"></script>
@@ -1052,7 +964,6 @@
     <script src="js/components/stats.js"></script>
     <script src="js/components/betting.js"></script>
     <script src="js/components/donate.js"></script>
-    <script src="js/components/rps.js"></script>
     <script src="js/components/simplebuy.js"></script>
 
     <script src="js/smartadmin.app.js"></script> <!-- custom app.js -->

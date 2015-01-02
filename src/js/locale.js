@@ -41,9 +41,9 @@ i18n.t('key2', 'world') => "Hello world"
 
 */
 //var AVAILABLE_LANGUAGES = ['fr', 'en', 'de', 'da', 'zh_cn', 'zh_tw', 'fi', 'tr', 'it', 'ja', 'es', 'ru'];
-var AVAILABLE_LANGUAGES = ['en']
-var DEFAULT_LANG = 'en';
-var LANG = getLanguage();
+var AVAILABLE_LANGUAGES;
+var DEFAULT_LANG;
+var LANG;
 
 function localeInit(callback) {
   var options = { 
@@ -56,8 +56,33 @@ function localeInit(callback) {
   i18n.init(options, function() {
     callback();
     createSharedKnockoutValidators();
+    initDateTimePicker(options.lng);
   });
+  switchTimeagoLocale(LANG);  
   localStorage.setItem("LANG", LANG);
+}
+
+function loadLocaleConfig(callback) {
+  $.getJSON("/counterwallet.conf.json", function(data) {
+    
+    if($.isArray(data["AVAILABLE_LANGUAGES"]))
+      AVAILABLE_LANGUAGES = data["AVAILABLE_LANGUAGES"];
+    else
+      AVAILABLE_LANGUAGES = ["en"];
+    
+    if(typeof data["DEFAULT_LANGUAGE"] === "string")
+      DEFAULT_LANG = data["DEFAULT_LANGUAGE"];
+    else
+      DEFAULT_LANG = "en";
+    
+    LANG = getLanguage();   
+    localeInit(callback);
+  }).fail(function() {
+    AVAILABLE_LANGUAGES = ["en"];
+    DEFAULT_LANG = "en";
+    LANG = "en";
+    localeInit(callback);
+  });
 }
 
 function getLanguage() {

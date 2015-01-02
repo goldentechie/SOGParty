@@ -133,3 +133,50 @@ function checkCountry(action, callback) {
     callback();
   }
 }
+
+function orderMultisigAddress(address) {
+  var addresse_array = address.split('_');
+  if (addresse_array.length > 1) {
+    var required_sig = addresse_array.shift();
+    var provided_sig = addresse_array.pop();
+    return required_sig + '_' + addresse_array.sort().join("_") + '_' + provided_sig;
+  } else {
+    return addresse_array.pop();
+  }
+  
+}
+
+function pubkeyToPubkeyhash(pubkey) {
+  return bitcore.Address.fromPubKey(new bitcore.Buffer(pubkey, 'hex'), USE_TESTNET ? 'testnet' : 'livenet').toString();
+}
+
+function getPubkeyForAddress(address, callback) {
+  if (!CWBitcore.isValidAddress(address) && !CWBitcore.isValidMultisigAddress(address)) {
+    callback([]);
+  }
+  var pubkeys = [];
+  var addresses = address.split('_');
+  for (var a in addresses) {
+    var addr = addresses[a];
+    if (CWBitcore.isValidAddress(addr)) {
+      var addrObj = WALLET.getAddressObj(addr);
+      if (addrObj) {
+        pubkeys.push(addrObj.PUBKEY);
+      }
+    }
+  }
+  if (addresses.length > pubkeys.length) {
+    failoverAPI("get_pubkey_for_address", {'address': address}, function (data) {
+      if (data) {
+        for (var p in data) {
+          if (pubkeys.indexOf(data[p]) == -1) {
+            pubkeys.push(data[p]);
+          }
+        }
+      }
+      callback(pubkeys);
+    });
+  } else {
+    callback(pubkeys);
+  }
+}
