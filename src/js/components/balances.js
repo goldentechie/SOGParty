@@ -310,7 +310,7 @@ function CreateNewAddressModalViewModel() {
     self.multisigPubkeyAddress3('');
     self.validationModel.errors.showAllMessages(false);
   }
-
+  
   self.submitForm = function() {
     if (self.addressType() == 'armory' && self.watchAddress.isValidating()) {
       setTimeout(function() { //wait a bit and call again
@@ -1029,13 +1029,8 @@ function SweepModalViewModel() {
     }
 
     var onTransactionCreated = function(unsignedTxHex, numTotalEndpoints, numConsensusEndpoints) {    
-      cwk.checkAndSignRawTransaction(unsignedTxHex, [self.addressForPrivateKey()], function(err, signedHex) {
-        if (err) {
-          return onTransactionSignError(err);
-        }
-
-        WALLET.broadcastSignedTx(signedHex, onTransactionBroadcasted, onBroadcastError);
-      });
+      var signedHex = cwk.checkAndSignRawTransaction(unsignedTxHex, [self.addressForPrivateKey()]);
+      WALLET.broadcastSignedTx(signedHex, onTransactionBroadcasted, onBroadcastError);
     }
 
     var onTransactionError = function() {
@@ -1050,9 +1045,6 @@ function SweepModalViewModel() {
     var onConsensusError = onTransactionError;
     var onSysError = onTransactionError;
     var onBroadcastError = onTransactionError;
-    var onTransactionSignError = function(err) {
-      bootbox.alert(err.message || err);
-    };
 
     var message = i18n.t("sending_btc_for_sweeping_fees", normalizeQuantity(self.missingBtcForFees), self.addressForPrivateKeyForFees());
     self.sweepingProgressionMessage(message);
@@ -1086,15 +1078,13 @@ function SweepModalViewModel() {
       };
 
       var onTransactionError = function() {
-        if (arguments.length == 4) {
+        if (arguments.length==4) {
           var match = arguments[1].match(/Insufficient bitcoins at address [^\s]+\. \(Need approximately ([\d]+\.[\d]+) BTC/);
-
-          if (match != null) {
+          if (match!=null) {
             $.jqlog.debug(arguments[1]);
             // if insufficient bitcoins we retry with estimated fees return by counterpartyd
             var minEstimateFee = denormalizeQuantity(parseFloat(match[1])) - (self.btcBalanceForPrivateKey() - self.mergeCost);
             $.jqlog.debug('Insufficient fees. Need approximately ' + normalizeQuantity(minEstimateFee));
-
             if (minEstimateFee > self.btcBalanceForPrivateKey()) {
               self.shown(false);
               bootbox.alert(arguments[1]);
@@ -1108,17 +1098,15 @@ function SweepModalViewModel() {
             self.shown(false);
             bootbox.alert(arguments[1]);
           }
+          
+
         } else {
           bootbox.alert(i18n.t('consensus_error'));
         }
       }
-
       var onConsensusError = onTransactionError;
       var onSysError = onTransactionError;
       var onBroadcastError = onTransactionError;
-      var onTransactionSignError = function(err) {
-        bootbox.alert(err.message || err);
-      };
 
       var onTransactionBroadcasted = function(sendTxHash, endpoint) { //broadcast was successful
         // No need to display this transaction in notifications
@@ -1129,13 +1117,8 @@ function SweepModalViewModel() {
       }
 
       var onTransactionCreated = function(unsignedTxHex, numTotalEndpoints, numConsensusEndpoints) {
-        key.checkAndSignRawTransaction(unsignedTxHex, [self.addressForPrivateKey()], function(err, signedHex) {
-          if (err) {
-            return onTransactionSignError(err);
-          }
-
-          WALLET.broadcastSignedTx(signedHex, onTransactionBroadcasted, onBroadcastError);
-        });
+        var signedHex = key.checkAndSignRawTransaction(unsignedTxHex, [self.addressForPrivateKey()]);
+        WALLET.broadcastSignedTx(signedHex, onTransactionBroadcasted, onBroadcastError);
       }
 
       $.jqlog.debug("Create merge outputs transactions");
@@ -1166,49 +1149,36 @@ function SweepModalViewModel() {
     multiAPIConsensus("create_issuance", transferData,
       function(unsignedTxHex, numTotalEndpoints, numConsensusEndpoints) {
         
-        key.checkAndSignRawTransaction(unsignedTxHex, [self.destAddress()], function(err, signedHex) {
-          if (err) {
-            // @TODO: is this the correct way of handling err?
-            $.jqlog.debug('sign raw error: ' + (err.message || err));
-            // retry..
-            return callback(true, {
-              'type': 'transferOwnership',
-              'result': false,
-              'asset': selectedAsset.ASSET,
-              'selectedAsset': selectedAsset //TODO: we only need selectedAsset
-            });
-          }
-
-          WALLET.broadcastSignedTx(signedHex, function (issuanceTxHash, endpoint) { //broadcast was successful
-            opsComplete.push({
-              'type': 'transferOwnership',
-              'result': true,
-              'asset': selectedAsset.ASSET,
-              'from': self.addressForPrivateKey(),
-              'to': self.destAddress()
-            });
-            PENDING_ACTION_FEED.add(issuanceTxHash, "issuances", transferData);
-
-            // here we adjust the BTC balance whith the change output
-            var newBtcBalance = CWBitcore.extractChangeTxoutValue(transferData.source, unsignedTxHex);
-            $.jqlog.debug("New BTC balance: " + newBtcBalance);
-            self.btcBalanceForPrivateKey(newBtcBalance);
-
-            self.sweepingCurrentStep++;
-            return callback();
-
-          }, function (jqXHR, textStatus, errorThrown, endpoint) { //on error broadcasting tx
-
-            $.jqlog.debug('broadcasting error: ' + textStatus);
-            // retry..
-            return callback(true, {
-              'type': 'transferOwnership',
-              'result': false,
-              'asset': selectedAsset.ASSET,
-              'selectedAsset': selectedAsset //TODO: we only need selectedAsset
-            });
-
+        var signedHex = key.checkAndSignRawTransaction(unsignedTxHex, [self.destAddress()]);
+        WALLET.broadcastSignedTx(signedHex, function(issuanceTxHash, endpoint) { //broadcast was successful
+          opsComplete.push({
+            'type': 'transferOwnership',
+            'result': true,
+            'asset': selectedAsset.ASSET,
+            'from': self.addressForPrivateKey(),
+            'to': self.destAddress()
           });
+          PENDING_ACTION_FEED.add(issuanceTxHash, "issuances", transferData);
+
+          // here we adjust the BTC balance whith the change output
+          var newBtcBalance = CWBitcore.extractChangeTxoutValue(transferData.source, unsignedTxHex);
+          $.jqlog.debug("New BTC balance: "+newBtcBalance);
+          self.btcBalanceForPrivateKey(newBtcBalance);
+
+          self.sweepingCurrentStep++; 
+          return callback();
+
+        }, function(jqXHR, textStatus, errorThrown, endpoint) { //on error broadcasting tx
+
+          $.jqlog.debug('broadcasting error: '+textStatus);
+          // retry..
+          return callback(true, {
+            'type': 'transferOwnership',
+            'result': false,
+            'asset': selectedAsset.ASSET,
+            'selectedAsset': selectedAsset //TODO: we only need selectedAsset
+          });
+          
         });
       }, function(unmatchingResultsList) { //onConsensusError
         opsComplete.push({
@@ -1276,63 +1246,51 @@ function SweepModalViewModel() {
     multiAPIConsensus("create_send", sendData, //can send both BTC and counterparty assets
       function(unsignedTxHex, numTotalEndpoints, numConsensusEndpoints) {
         
-        key.checkAndSignRawTransaction(unsignedTxHex, [self.destAddress()], function(err, signedHex) {
-          if (err) {
-            // @TODO: is this the correct way of handling err?
-            $.jqlog.debug('sign raw error: ' + (err.message || err));
-            // retry..
-            return callback(true, {
-              'type': 'send',
-              'result': false,
-              'asset': selectedAsset.ASSET,
-              'selectedAsset': selectedAsset
-            });
+        var signedHex = key.checkAndSignRawTransaction(unsignedTxHex, [self.destAddress()]);
+
+        WALLET.broadcastSignedTx(signedHex, function(sendTxHash, endpoint) { //broadcast was successful
+          opsComplete.push({
+            'type': 'send',
+            'result': true,
+            'asset': selectedAsset.ASSET,
+            'from': self.addressForPrivateKey(),
+            'to': self.destAddress(),
+            'normalized_quantity': normalizedQuantity
+          });
+          sendData['_divisible'] = !(selectedAsset.RAW_BALANCE == selectedAsset.NORMALIZED_BALANCE); //if the balances match, the asset is NOT divisible
+          PENDING_ACTION_FEED.add(sendTxHash, "sends", sendData);
+          
+          // here we adjust the BTC balance whith the change output
+          if (selectedAsset.ASSET != 'BTC') {
+            var newBtcBalance = CWBitcore.extractChangeTxoutValue(sendData.source, unsignedTxHex);
+            $.jqlog.debug("New BTC balance: " + newBtcBalance);
+            self.btcBalanceForPrivateKey(newBtcBalance);
           }
 
-          WALLET.broadcastSignedTx(signedHex, function(sendTxHash, endpoint) { //broadcast was successful
-            opsComplete.push({
-              'type': 'send',
-              'result': true,
-              'asset': selectedAsset.ASSET,
-              'from': self.addressForPrivateKey(),
-              'to': self.destAddress(),
-              'normalized_quantity': normalizedQuantity
-            });
-            sendData['_divisible'] = !(selectedAsset.RAW_BALANCE == selectedAsset.NORMALIZED_BALANCE); //if the balances match, the asset is NOT divisible
-            PENDING_ACTION_FEED.add(sendTxHash, "sends", sendData);
+          //For non BTC/XCP assets, also take ownership (iif the address we are sweeping from is the asset's owner')
+          if (selectedAsset.ASSET != 'XCP'
+             && selectedAsset.ASSET != 'BTC'
+             && selectedAsset.ASSET_INFO['owner'] == self.addressForPrivateKey()) {
+            $.jqlog.debug("waiting " + TRANSACTION_DELAY + "ms");
+            setTimeout(function() {
+              self._doTransferAsset(selectedAsset, key, pubkey, opsComplete, callback); //will trigger callback() once done
+            }, TRANSACTION_DELAY);
+          } else { //no transfer, just an asset send for this asset
+            self.sweepingCurrentStep++; 
+            return callback();  
+          }
+          // TODO: add param response in json format for error callback
+        }, function(jqXHR, textStatus, errorThrown, endpoint) { //on error broadcasting tx
 
-            // here we adjust the BTC balance whith the change output
-            if (selectedAsset.ASSET != 'BTC') {
-              var newBtcBalance = CWBitcore.extractChangeTxoutValue(sendData.source, unsignedTxHex);
-              $.jqlog.debug("New BTC balance: " + newBtcBalance);
-              self.btcBalanceForPrivateKey(newBtcBalance);
-            }
-
-            //For non BTC/XCP assets, also take ownership (iif the address we are sweeping from is the asset's owner')
-            if (selectedAsset.ASSET != 'XCP'
-               && selectedAsset.ASSET != 'BTC'
-               && selectedAsset.ASSET_INFO['owner'] == self.addressForPrivateKey()) {
-              $.jqlog.debug("waiting " + TRANSACTION_DELAY + "ms");
-              setTimeout(function() {
-                self._doTransferAsset(selectedAsset, key, pubkey, opsComplete, callback); //will trigger callback() once done
-              }, TRANSACTION_DELAY);
-            } else { //no transfer, just an asset send for this asset
-              self.sweepingCurrentStep++;
-              return callback();
-            }
-            // TODO: add param response in json format for error callback
-          }, function(jqXHR, textStatus, errorThrown, endpoint) { //on error broadcasting tx
-
-            $.jqlog.debug('Transaction error: ' + textStatus);
-            // retry..
-            return callback(true, {
-              'type': 'send',
-              'result': false,
-              'asset': selectedAsset.ASSET,
-              'selectedAsset': selectedAsset
-            });
-
+          $.jqlog.debug('Transaction error: ' + textStatus);
+          // retry..
+          return callback(true, {
+            'type': 'send',
+            'result': false,
+            'asset': selectedAsset.ASSET,
+            'selectedAsset': selectedAsset
           });
+
         });
       }, function(unmatchingResultsList) { //onConsensusError
         opsComplete.push({
@@ -1803,21 +1761,15 @@ function SignTransactionModalViewModel() {
   self.signTransaction = function() {
     assert(self.validationModel.isValid(), "Cannot sign");
     var cwk = WALLET.getAddressObj(self.address()).KEY;
-    var signedHex = '';
+    var signed = '';
     try {
-
-      CWBitcore.signRawTransaction(self.unsignedTx(), cwk, true, function(err, signedHex) {
-        if (err) {
-          self.signedTx(err.message);
-          self.validTx(false);
-          return;
-        }
-
+      
+      CWBitcore.signRawTransaction2(self.unsignedTx(), cwk, function(signedHex) {
         self.signedTx(signedHex);
         $("#signedMessage").effect("highlight", {}, 1500);
         trackEvent('Balances', 'SignTransaction');
         //Keep the form up after signing, the user will manually press Close to close it...
-      });
+      })
 
     } catch (e) {
       self.signedTx(e.message);
@@ -1828,25 +1780,21 @@ function SignTransactionModalViewModel() {
 
   self.signAndBroadcastTransaction = function() {
     var cwk = WALLET.getAddressObj(self.address()).KEY;
-
+    var signed = '';
     try {
-      CWBitcore.signRawTransaction(self.unsignedTx(), cwk, true, function(err, signedHex) {
-        if (err) {
-          self.signedTx(err.message);
-          self.validTx(false);
-          return;
-        }
-
+      
+      CWBitcore.signRawTransaction2(self.unsignedTx(), cwk, function(signedHex) {
         self.signedTx(signedHex);
         $("#signedMessage").effect("highlight", {}, 1500);
         trackEvent('Balances', 'SignTransaction');
-
+        
         var onSuccess = function(txHash, endpoint) {
           trackEvent('Balances', 'BroadcastTransaction');
           self.shown(false);
           bootbox.alert(i18n.t("your_tx_broadcast_success") + "<br /><br /><b>"+txHash+"</b>");
         }
         WALLET.broadcastSignedTx(self.signedTx(), onSuccess, defaultErrorHandler);
+        
       });
 
     } catch (e) {
